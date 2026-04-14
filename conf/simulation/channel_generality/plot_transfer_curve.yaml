@@ -1,0 +1,19 @@
+# @package _global_
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: plot_transfer_curve
+workdir: ${hydra:runtime.output_dir}
+
+# 参数：修改本块可调整曲线数据路径与绘图选项
+plot_transfer_curve:
+  data_root: data/channel_generality/transfer_ppo
+  idt_root: data/channel_generality/dt
+  save_path: outputs/figures/channel_generality/transfer/fig7_transfer_curve
+  metric: hp_violation_rate  # 可选: mean_return | hp_violation_rate | nhp_violation_rate
+  target_scenarios: [7, 9]
+  steps_per_ckp: 1000
+  samples_per_step: 1

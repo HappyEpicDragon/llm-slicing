@@ -1,0 +1,31 @@
+# @package _global_
+
+defaults:
+  - /environment: env_ha
+  - /model: ha_weighted
+
+name: explainable_ai
+mode: attention
+workdir: ${hydra:runtime.output_dir}
+
+attention:
+  model_paths: ${model}
+  scenario_id: 9
+  crisis_threshold: 0.35   # 仅用于 buffer fallback
+  search_max_steps: 1200
+  return_first_violation: false
+  scan_full_episode: true
+  min_step_for_violation: 5
+  anchor_control_users: 3
+  anchor_diagnosis_frames: 10
+  anchor_rollout_steps: 200
+  anchor_rollout_seeds: 3
+  anchor_rollout_target_rtg: -20000.0
+  fallback_to_peak: true
+  device: "cpu"
+
+  # 绘图输入数据资产目录（.npy/.json）
+  asset_dir: data/explainable_ai/attention/fig10_assets
+
+  # 最终图输出目录（.pdf/.png）
+  output_dir: outputs/figures/channel_generality/xai/fig10_attention

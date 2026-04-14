@@ -1,0 +1,38 @@
+# @package _global_
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: dt_dataset_collect_all
+workdir: ${hydra:runtime.output_dir}
+
+dt_dataset_collect_all:
+  output_path: /root/decision_transformer_slicing/data/channel_generality/dt/dataset
+  episodes_per_scenario_training: 60      # 每个场景的episode数量
+  episodes_per_scenario_evaluating: 20
+  runs_per_episode: 40
+  keep_count_per_episode: 10
+  # 并发控制：
+  # - max_workers: 显式指定并行 worker 数（null=自动）
+  # - cpu_utilization_target: 自动模式下目标 CPU 占用比例（默认 0.5）
+  # - worker_nice: 每个 worker 的 nice 值（越大优先级越低，默认 5）
+  max_workers: null
+  cpu_utilization_target: 0.5
+  worker_nice: 5
+  strict_model_check: true
+  clean_output_path: false
+  deterministic_ratio: 0.2      # 确定性策略比例
+  gamma: 1.0                    # DT 的 RTG 衰减因子
+  device: "cuda"
+  environment: ${environment}
+
+
+  MODEL_ZOO:
+    0: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_0/latest/best_model/best_model.zip
+    1: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_1/latest/best_model/best_model.zip
+    2: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_2/latest/best_model/best_model.zip
+    3: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_3/latest/best_model/best_model.zip
+    4: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_4/latest/best_model/best_model.zip
+
+  CROSS_SCENARIO_IDS: [0, 1, 2, 3, 4] # [0, 1, 2, 3, 4]

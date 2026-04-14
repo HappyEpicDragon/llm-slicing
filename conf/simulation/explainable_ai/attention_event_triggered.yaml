@@ -1,0 +1,35 @@
+# @package _global_
+
+defaults:
+  - /environment: env_ha
+  - /model: ha_weighted
+
+name: explainable_ai
+mode: attention_event_triggered
+workdir: ${hydra:runtime.output_dir}
+
+attention_event_triggered:
+  model_paths: ${model}
+  scenario_id: 9
+  device: "cpu"
+
+  # Event-triggered config
+  seeds: [0, 1, 2]
+  max_steps: 400
+  window: 50
+  include_first_if_already_violating: true
+  event_line_min_gap: 8
+  event_line_max_count: 40
+  resource_spike_tol: 1.0e-9
+  viz_window_start: 50
+  viz_window_end: 150
+
+  # DT rollout prompt setting (same convention as rtg_sweeping)
+  dt_target_rtg: -20000.0
+  context_len: 20
+  rtg_scale: 1000.0
+
+  # Assets & figure output
+  asset_dir: data/explainable_ai/attention_event_triggered/fig10_assets
+  output_dir: outputs/figures/channel_generality/xai/fig10_attention_event
+

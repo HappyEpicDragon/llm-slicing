@@ -1,0 +1,39 @@
+# @package _global_
+# A2 消融实验：仅按 Episode Reward 筛选轨迹（去除字典序策展）
+# 用法：python main.py name=channel_generality mode=dt_dataset_collect_all \
+#        --config-name dt_dataset_collect_all_reward_only
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: dt_dataset_collect_all
+workdir: ${hydra:runtime.output_dir}
+
+dt_dataset_collect_all:
+  output_path: /root/decision_transformer_slicing/data/channel_generality/dt_reward_only/dataset
+  episodes_per_scenario_training: 60
+  episodes_per_scenario_evaluating: 20
+  runs_per_episode: 40
+  keep_count_per_episode: 10
+  # 并发控制（与主配置一致）
+  max_workers: null
+  cpu_utilization_target: 0.5
+  worker_nice: 5
+  strict_model_check: true
+  clean_output_path: false
+  deterministic_ratio: 0.2
+  gamma: 1.0
+  device: "cuda"
+  # A2 消融：仅按 reward 排序，不用字典序策展
+  curation_mode: reward_only
+  environment: ${environment}
+
+  MODEL_ZOO:
+    0: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_0/latest/best_model/best_model.zip
+    1: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_1/latest/best_model/best_model.zip
+    2: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_2/latest/best_model/best_model.zip
+    3: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_3/latest/best_model/best_model.zip
+    4: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_4/latest/best_model/best_model.zip
+
+  CROSS_SCENARIO_IDS: [0, 1, 2, 3, 4]

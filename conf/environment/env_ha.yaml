@@ -1,0 +1,153 @@
+env_settings:
+  mode: training
+  scenario_mode: inside
+  model_name: null
+
+  env_state_config:
+    initial_episode_number: 0
+    max_number_episodes: 0
+
+    episode_interval_start: 0
+    episode_interval_end: 0
+    episode_cross_scenario_skip: 0
+
+    # [修改] One-Shot 模式下，每个 RL Step 对应一个物理 TTI
+    # 所以 max_steps 应该等于 channel_timesteps (1000)
+    # 意味着一个 Episode 会跑完整个 1秒钟的物理场景
+    max_number_steps: 1000
+    max_channel_timesteps: 1000
+    active_scenario_list: null
+
+  inside:
+    episode_cross_scenario_skip: 100
+    training:
+      seed: 10
+      init_scenario_episode: 0
+      max_scenario_episodes: 60 # 20
+      active_scenario_list: null
+
+    evaluating:
+      seed: 15
+      init_scenario_episode: 80
+      max_scenario_episodes: 100
+      active_scenario_list: null
+
+    testing:
+      seed: 15
+      init_scenario_episode: 60
+      max_scenario_episodes: 80
+      active_scenario_list: null
+
+  # ... (cross 配置保持不变) ...
+
+  cross:
+    episode_cross_scenario_skip: 1
+    training:
+      seed: 10
+      init_scenario_episode: 0
+      max_scenario_episodes: 1
+      active_scenario_list: null
+
+    evaluating:
+      seed: 15
+      init_scenario_episode: 0
+      max_scenario_episodes: 1
+      active_scenario_list: null
+
+    testing:
+      seed: 15
+      init_scenario_episode: 0
+      max_scenario_episodes: 1
+      active_scenario_list: null
+
+  components:
+    basestations:
+      max_number_basestations: 1
+      max_number_power_level: 1
+      total_power: 100.0  # [修改] 确认基站功率限制 (之前代码写了40W，这里需对齐)
+      noise_power: 10e-14
+      bandwidths:
+        - 100000000.0
+      carrier_frequencies:
+        - 2800000000.0
+      num_available_rbs:
+        - 135 # (27 RBGs * 5)
+
+    ues:
+      max_number_ues: 25
+
+    slices:
+      max_number_slices: 5
+
+    association:
+      inside:
+        class_path: src.basic_apis.network_slicing_business.components.MultSliceAssociationSeq
+      cross:
+        class_path: src.basic_apis.network_slicing_business.components.MultSliceAssociation
+
+    channel:
+      inside:
+        class_path: src.basic_apis.network_slicing_business.components.QuadrigaChannelSeq
+      cross:
+        class_path: src.basic_apis.network_slicing_business.components.QuadrigaChannel
+
+    traffic:
+      class_path: src.basic_apis.network_slicing_business.components.MultSliceTraffic
+
+    mobility:
+      class_path: src.basic_apis.network_slicing_business.components.SimpleMobility
+
+    metrics:
+      class_path: src.basic_apis.network_slicing_business.components.Metrics
+      save_hist: false
+
+# ============================================================
+# RL 训练配置 (已对齐代码)
+# ============================================================
+train_rl:
+  # --- 1. 全局控制 ---
+  total_timesteps: 600000
+  device: "cuda"
+  seed: 42
+
+  # --- 2. 奖励函数系数 ---
+  reward_weights:
+    base_sla_coef: 0.3 # 1.0
+    consistency_coef: 0.5
+    risk_coef: 0 # 0.005
+
+  # --- 3. PPO 超参数 ---
+  ppo:
+    learning_rate: 3.0e-5
+    n_steps: 512
+    batch_size: 64
+    n_epochs: 10
+    gamma: 0.99
+    gae_lambda: 0.95
+    clip_range: 0.2
+    ent_coef: 0.005 # 0.02
+    vf_coef: 0.5
+    max_grad_norm: 0.5
+
+  # --- 4. 网络架构 ---
+  network:
+    features_dim: 256
+    pi_head: [256, 128] # [256, 128]
+    vf_head: [256, 128] # [256, 128]
+    # Attention配置
+    hidden_dim: 128 # 128
+    num_heads: 4
+
+  # --- 5. 日志与保存 (补充了 saving 部分) ---
+  logging:
+    tensorboard_log: ${workdir}/logs_hierarchical/
+    log_interval: 1
+
+  saving:
+    save_path: ${workdir}/models_hierarchical
+    save_freq: 10000  # 用于 Checkpoint
+
+  # --- 6. 评估配置 (补充了 evaluation 部分) ---
+  evaluation:
+    eval_freq: 10000
+    best_model_save_path: ${workdir}/best_model_hierarchical

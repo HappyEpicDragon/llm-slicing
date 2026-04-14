@@ -1,0 +1,79 @@
+seed: 10
+seed_test: 15
+mode: training # training / evaluating / testing
+scenario_mode: inside # inside / cross
+
+training_scenario: 0
+
+model_name: scenario_0
+
+
+state_config:
+  scenario_skip_episodes: null
+  initial_episode: null
+  max_episode: null
+  active_scenario_list: null
+  max_number_steps: 1000
+
+inside:
+  scenario_skip_episodes: 100
+  training:
+    initial_episode: 0
+    max_episode: 60
+    active_scenario_list: [0]
+    save_hist: false
+
+  testing:
+    initial_episode: 60
+    test_episodes: 20
+    max_episode: 80
+    active_scenario_list: [0]
+    save_hist: true
+
+  evaluating:
+    initial_episode: 80
+    max_episode: 100
+    evaluating_episodes: 20
+    active_scenario_list: [0]
+    save_hist: false
+
+
+channel_class:
+  inside: src.basic_apis.network_slicing_business.components.QuadrigaChannelSeq
+  cross: src.basic_apis.network_slicing_business.components.QuadrigaChannel
+association_class:
+  inside: src.basic_apis.network_slicing_business.components.MultSliceAssociationSeq
+  cross: src.basic_apis.network_slicing_business.components.MultSliceAssociation
+traffic_class: src.basic_apis.network_slicing_business.components.MultSliceTraffic
+mobility_class: src.basic_apis.network_slicing_business.components.SimpleMobility
+training_epochs: 10
+enable_evaluation: true
+
+checkpoint_episode_freq: 1
+save_hist: false
+
+number_rollout_workers: 5
+number_scenarios: 1
+scenarios_skip_episodes: 100
+agent: ppo_baseline
+agent_class: src.basic_apis.ppo.ppo_baseline.agent_ib_sched.IBSched
+path_manager_class: src.basic_apis.network_slicing_business.path_manager.PathManager
+rl: true
+enable_finetune: false
+env_settings:
+  basestations:
+    bandwidths:
+    - 100000000.0
+    carrier_frequencies:
+    - 2800000000.0
+    max_number_basestations: 1
+    num_available_rbs:
+    - 135
+  simulation:
+    hist_root_path: ./
+    max_number_episodes: 10000
+    max_number_steps: 1000
+  slices:
+    max_number_slices: 5
+  ues:
+    max_number_ues: 25

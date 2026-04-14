@@ -1,0 +1,27 @@
+# @package _global_
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: train_ppo_lstm_across_scenario
+workdir: ${hydra:runtime.output_dir}
+
+train_ppo_lstm_across_scenario:
+  environment: ${environment}
+  env_updates:
+    mode: training
+    scenario_mode: inside
+    model_name: scenario_0_2
+    inside:
+      training:
+        active_scenario_list:
+          - 0
+          - 2
+      evaluating:
+        active_scenario_list:
+          - 3
+      testing:
+        active_scenario_list:
+          - 3

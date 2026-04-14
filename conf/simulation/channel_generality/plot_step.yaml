@@ -1,0 +1,12 @@
+# @package _global_
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: plot_step
+workdir: ${hydra:runtime.output_dir}
+
+plot_step:
+  null

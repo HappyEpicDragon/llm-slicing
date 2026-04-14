@@ -1,0 +1,30 @@
+# @package _global_
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: test_ppo_ha_weighted
+workdir: ${hydra:runtime.output_dir}
+
+test_ppo_ha_weighted:
+  environment: ${environment}
+  model_path: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_0to4/latest/best_model/best_model.zip
+
+  # 多种子 × 多场景配置（5 seeds × 5 testing scenarios）
+  test_seeds: [0, 1, 2, 3, 4]
+  save_results: true
+  save_root: data/channel_generality/ppo_ha_weighted
+  clean_before_save: false
+
+  env_updates:
+    mode: testing
+    scenario_mode: inside
+    model_name: scenario_9
+    inside:
+      training:
+        active_scenario_list: [5, 6, 7, 8, 9]
+      evaluating:
+        active_scenario_list: [5, 6, 7, 8, 9]
+      testing:
+        active_scenario_list: [5, 6, 7, 8, 9]

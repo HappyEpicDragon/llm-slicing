@@ -1,0 +1,57 @@
+# @package _global_
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: dt_testing
+workdir: ${hydra:runtime.output_dir}
+
+
+dt_testing:
+  # 模型权重文件的具体路径
+  environment: ${environment}
+  # model_path: /root/decision_transformer_slicing/data/channel_generality/dt/model/latest/best_dt_model.pth
+  model_path: /root/decision_transformer_slicing/data/channel_generality/dt_multi_teacher/model/runs/20260328-164458/epoch_2.pth
+  device: cuda
+  use_viol_rtg: false
+
+  env_updates:
+    mode: testing           # [核心] 切换为测试模式 (Testing Scenarios)
+    scenario_mode: inside
+    model_name: scenario_9  # 用于文件路径命名
+
+    inside:
+      testing:
+        # 显式指定测试配置 (可选，视 env_oneshot.yaml 默认值而定)
+        # 这里确保加载的是测试集的场景配置
+        active_scenario_list: [5, 6, 7, 8, 9]
+
+  model:
+    context_len: 20
+    embed_dim: 512
+    n_layer: 12
+    n_head: 16
+    activation: "relu"
+    dropout: 0.1
+    act_dim: 30
+
+  evaluation:
+    target_rtg: 10000.0
+
+  # 动作覆盖（诊断/消融用）
+  # force_dim0: null=DT原始预测, 0-10=强制 codebook 条目
+  # force_intra: null=DT原始预测, 0=RR, 1=PF, 2=MT
+  # 默认配置 = DT+fixedRR (推荐)；original DT 需设 force_intra=null
+  force_dim0: null
+  force_intra: null
+
+  test_seeds: [0, 1, 2, 3, 4]
+  save_results: true
+  # 默认输出到 dt_fixed_rr；original DT 测试时覆盖为 dt
+  save_root: /root/decision_transformer_slicing/data/channel_generality/dt_multi_teacher
+  clean_before_save: false
+
+  dataset:
+    rtg_scale: 100000.0
+    meta_path: /root/decision_transformer_slicing/data/channel_generality/dt_multi_teacher/dataset/metadata.json

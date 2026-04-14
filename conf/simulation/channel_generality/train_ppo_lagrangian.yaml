@@ -1,0 +1,41 @@
+# @package _global_
+# Lagrangian PPO (B2 Baseline) 训练配置
+# 参考文献：M. Zangooei et al., IEEE JSAC 2024 [20]
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: train_ppo_lagrangian
+
+train_ppo_lagrangian:
+  # 训练场景：默认跨场景联合训练（0-4）
+  # 说明：代码中 scenarios 优先于 scenario
+  scenarios: [0, 1, 2, 3, 4]
+  scenario: 0
+
+  seed: 0
+
+  # 模型保存路径（EnvV2，与 PPO-v2/DT-v2 同环境；勿与旧 V1 权重混用）
+  save_path: data/channel_generality/ppo_lagrangian_v2/models/scen_all_seed0
+  asset:
+    use_versioned_runs: true
+    run_id: auto
+    clean_before_run: false
+    update_latest: true
+
+  # 训练步数
+  total_timesteps: 1000000
+
+  # Lagrangian 超参数（按 [20]）
+  cost_limit: 1.0e-4        # safety threshold c
+  lagrangian_lr: 1.0e-7     # λ 更新步长 α_λ
+  initial_lambda: 10.0       # 初始 Lagrangian multiplier
+
+  # PPO 超参数（按 [20]）
+  actor_lr: 8.0e-5
+  critic_lr: 1.0e-3
+  gamma: 0.4
+  n_steps_per_rollout: 500   # 每次 rollout 的步数（1 episode）
+
+  device: cpu

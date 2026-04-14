@@ -1,0 +1,44 @@
+# @package _global_
+# Evaluate DT-v2 tiny variants on held-out episodes (testing: ep 60-79).
+# Run:
+#   pixi run sim channel_generality/test_dt_v2_tiny \
+#     test_dt_v2_tiny.model_path=<path/to/final_dt_v2.pth> \
+#     test_dt_v2_tiny.grid_id=b2_e2
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: test_dt_v2_tiny
+
+test_dt_v2_tiny:
+  environment: ${environment}
+
+  model_path: data/channel_generality/dt_v2_tiny/models/b2_e2/final_dt_v2.pth
+  meta_path: data/channel_generality/dt_v2_8exp/dataset_D-B/metadata.json
+  encoder_type: slice_attn
+  grid_id: b2_e2
+
+  target_rtg: 0.0
+  test_scenarios: [5, 6, 7, 8, 9]
+  test_seeds: [0]
+  init_episode: null
+  max_episode: null
+  n_episodes: 20
+  device: cuda
+
+  save_root: data/channel_generality/dt_v2_tiny/metric_json/${test_dt_v2_tiny.grid_id}
+
+  model:
+    context_len: 20
+    embed_dim: 32
+    n_layer: 2
+    n_head: 2
+    activation: relu
+    dropout: 0.1
+    encoder_hidden_dim: 32
+    encoder_num_heads: 2
+
+  env_updates:
+    mode: testing
+    scenario_mode: inside

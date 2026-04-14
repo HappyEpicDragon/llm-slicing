@@ -1,0 +1,45 @@
+seed: 10
+seed_test: 15
+channel_class: src.ppo.QuadrigaChannelSeq
+traffic_class: src.ppo.MultSliceTraffic
+mobility_class: src.ppo.SimpleMobility
+training_epochs: 50 # 100
+enable_evaluation: true
+initial_training_episode: 3 # 20
+max_training_episodes: 4 # 80
+initial_testing_episode: 0
+test_episodes: 20
+episode_evaluation_freq: 10
+number_evaluation_episodes: 20
+checkpoint_episode_freq: 1
+eval_initial_env_episode: 80
+eval_final_env_episode: 100
+save_hist: true
+enable_random_episodes: false
+number_rollout_workers: ${oc.select:experiment.train_ppo.number_rollout_workers, 5}
+number_scenarios: 1
+scenarios_skip_episodes: 100
+scenario: mult_slice_seq
+agent_name: ray_ib_sched_default
+agent_class: src.ppo.IBSched
+association_class: src.ppo.MultSliceAssociationSeq
+rl: true
+enable_finetune: false
+env_settings:
+  basestations:
+    bandwidths:
+    - 100000000.0
+    carrier_frequencies:
+    - 2800000000.0
+    max_number_basestations: 1
+    num_available_rbs:
+    - 135
+  simulation:
+    hist_root_path: ./
+    max_number_episodes: 10000
+    max_number_steps: 1000
+    simu_name: mult_slice
+  slices:
+    max_number_slices: 5
+  ues:
+    max_number_ues: 25

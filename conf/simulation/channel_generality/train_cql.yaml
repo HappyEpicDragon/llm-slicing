@@ -1,0 +1,36 @@
+# @package _global_
+# CQL (B1 Baseline) 训练配置
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: train_cql
+
+train_cql:
+  # D-B dataset converted from dt_v2 MultiDiscrete → 5-dim PRB fractions
+  dataset_expert: data/channel_generality/cql_baseline/dataset.h5
+  dataset_raw: null
+
+  # 模型输出根目录
+  output_root: data/channel_generality/cql_baseline/models
+  asset:
+    use_versioned_runs: false
+    run_id: auto
+    clean_before_run: false
+    update_latest: false
+
+  # 训练超参数（按文献 [37]）
+  actor_lr: 5.0e-5
+  critic_lr: 1.0e-3
+  alpha: 15.0           # CQL conservatism coefficient
+  n_steps: 50000
+  batch_size: 256
+
+  # 多 seed 循环
+  train_seeds: [0]
+
+  # 只训练 expert 变体（D-B 数据集）
+  variants: [expert]
+
+  device: cuda:0

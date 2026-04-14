@@ -1,0 +1,29 @@
+# @package _global_
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: plot
+workdir: ${hydra:runtime.output_dir}
+
+plot:
+  json_data_base_dir: "/root/decision_transformer_slicing/data/channel_generality"
+#  json_data_base_dir: "/root/decision_transformer_slicing/data/channel_generality/ppo_ha"
+#  json_data_base_dir: /root/decision_transformer_slicing/data/channel_generality/ppo_ha/
+  save_dir: ${workdir}
+  plot_scenario_list: [5, 6, 7, 8, 9]
+  baselines:
+    - ppo_baseline
+    - ppo_ha_weighted
+#    - ppo_oneshot
+#    - ppo_ha
+#    - ppo_lstm
+    - dt
+    - dt_baseline
+
+
+  metrics:
+    - normalized_distance_fulfill_cumsum
+    - normalized_violations_per_episode_cumsum

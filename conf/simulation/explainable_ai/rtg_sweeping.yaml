@@ -1,0 +1,25 @@
+# @package _global_
+
+defaults:
+  - /environment: env_ha
+  - /model: ha_weighted
+
+name: explainable_ai
+mode: rtg_sweeping
+workdir: ${hydra:runtime.output_dir}
+
+rtg_sweeping:
+  exp_name: "rtg_sweep_s9"
+  model_paths: ${model}
+  scenario_id: 9
+  rtg_min: -350000.0
+  rtg_max: -10000.0
+  num_points: 20
+  seeds_per_point: 3
+  device: "cpu"
+
+  # 绘图输入数据资产目录（.npz）
+  asset_dir: data/explainable_ai/rtg_sweeping/assets
+
+  # 最终图输出目录（.pdf/.png）
+  output_dir: outputs/figures/channel_generality/xai/rtg_sweeping

@@ -1,0 +1,42 @@
+# @package _global_
+# Evaluate Decision Transformer-v2 on held-out episodes (ep 60-79, "testing" mode).
+# Run: pixi run sim channel_generality/test_dt_v2 \
+#        test_dt_v2.model_path=<path>
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: test_dt_v2
+
+test_dt_v2:
+  environment: ${environment}
+
+  model_path: data/channel_generality/dt_v2_mean_rwd/dt_model/best_model.pth
+  meta_path: data/channel_generality/dt_v2_mean_rwd/dataset/metadata.json
+  encoder_type: cross_attn          # must match the trained checkpoint
+
+  target_rtg: 0.0
+  # Episode split: env_ha.yaml "testing" mode → ep 60-79 (held-out).
+  # Do NOT add init_scenario_episode override here.
+  test_scenarios: [5, 6, 7, 8, 9]  # unseen scenarios for generalization test
+  test_seeds: [0, 1, 2, 3, 4]
+  # Override episode range for OOD scenarios (null = use env_ha.yaml defaults)
+  init_episode: null     # set to 0 for s5-s9 (all 100 ep available)
+  max_episode: null      # set to 100 for s5-s9
+  n_episodes: 20                    # episodes per seed per scenario
+  device: cuda
+
+  save_root: data/channel_generality/dt_v2_mean_rwd/dt_test_results
+
+  model:
+    context_len: 20
+    embed_dim: 512
+    n_layer: 12
+    n_head: 16
+    activation: relu
+    dropout: 0.1
+
+  env_updates:
+    mode: testing                   # → ep 60-79 per env_ha.yaml
+    scenario_mode: inside

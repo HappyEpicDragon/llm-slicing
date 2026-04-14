@@ -1,0 +1,18 @@
+# @package _global_
+# Step-level 时序图（对应 experiment_manual_final 中 Fig.4 / Fig.5）
+# 数据来源：metric_raw/scenario_<N>/ep_seed<S>.npz 的 step_hp_dist / step_nhp_dist
+# 用法：pixi run sim plot_step_multiseed
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: plot_step_multiseed
+
+plot_step_multiseed:
+  # 默认展示 scenario=9（S_E）：最具挑战性的测试场景，用于展示时序稳定性对比
+  scenario: 9
+  seeds: [0, 1, 2, 3, 4]
+  methods: [ppo_ha_weighted, dt_baseline, dt, ppo_multi]
+  outdir: outputs/figures/channel_generality/temporal

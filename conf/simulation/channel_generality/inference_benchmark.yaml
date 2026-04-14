@@ -1,0 +1,17 @@
+# @package _global_
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: inference_benchmark
+workdir: ${hydra:runtime.output_dir}
+
+# 参数：修改本块可调整设备与各模型路径（空字符串则跳过该模型）
+inference_benchmark:
+  device: cpu
+  save_dir: data/channel_generality/inference_benchmark
+  ppo_ha_model_path: data/channel_generality/ppo_ha_weighted/models/scenario_0
+  ppo_lagrangian_model_path: data/channel_generality/ppo_lagrangian_v2/models/scen_all_seed0
+  cql_model_path: data/channel_generality/cql/models/expert_seed0

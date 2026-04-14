@@ -1,0 +1,29 @@
+# @package _global_
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: plot_hist
+workdir: ${hydra:runtime.output_dir}
+
+plot_hist:
+  # 推荐字段：data_root / output_dir（兼容旧字段 json_data_dir / save_dir）
+  data_root: data/channel_generality
+
+  output_dir: outputs/figures/channel_generality/cross_scenario
+
+  # 可按需覆盖方法顺序
+  # 默认保留 6 个主对比方法；CQL-Raw 作为 Tab.IV 消融变体单独报告
+  # transfer_ppo_0shot 仅当你已准备 5 场景 zero-shot 资产时再手动加入
+  model_keys:
+    - ppo_multi
+    - cql_expert
+    - ppo_lagrangian
+    - ppo_ha_weighted
+    - dt_baseline
+    - dt
+    - dt_fixed_rr
+
+  n_seeds: 5

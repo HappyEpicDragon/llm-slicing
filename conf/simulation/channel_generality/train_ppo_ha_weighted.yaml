@@ -1,0 +1,33 @@
+# @package _global_
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: train_ppo_ha_weighted
+workdir: ${hydra:runtime.output_dir}
+
+train_scenario: 4
+
+train_ppo_ha_weighted:
+  environment: ${environment}
+  asset:
+    use_versioned_runs: true
+    model_root: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_${train_scenario}
+    run_id: auto
+    clean_before_run: false
+    update_latest: true
+  env_updates:
+    mode: training
+    scenario_mode: inside
+    model_name: scenario_${train_scenario}
+    inside:
+      training:
+        active_scenario_list:
+          - ${train_scenario}
+      evaluating:
+        active_scenario_list:
+          - ${train_scenario}
+      testing:
+        active_scenario_list:
+          - ${train_scenario}

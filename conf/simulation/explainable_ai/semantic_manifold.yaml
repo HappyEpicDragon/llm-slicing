@@ -1,0 +1,38 @@
+# @package _global_
+
+defaults:
+  - /environment: env_ha
+  - /model: ha_weighted
+
+name: explainable_ai
+mode: semantic_manifold
+workdir: ${hydra:runtime.output_dir}
+
+semantic_manifold:
+  environment: ${environment}
+  model_paths: ${model}
+
+  # 绘图输入数据资产目录（.npy）
+  asset_dir: data/explainable_ai/semantic_manifold/fig9_assets
+
+  # 最终图输出目录（.pdf/.png）
+  output_dir: outputs/figures/channel_generality/xai/fig9_semantic_manifold
+
+  # ============================
+  # 2. 实验参数
+  # ============================
+  device: "cpu"           # 推理设备
+  samples_per_scenario: 1000  # 每个场景采集的样本数
+
+  # 场景定义：Key 为代码引用的标识，Value 为具体配置
+  target_scenarios:
+    s2_source:
+      name: "S2 (Source)"
+      mode: "training"
+      scenario_id: 2
+      label: 0            # 绘图时的颜色标签
+    s9_target:
+      name: "S9 (Target)"
+      mode: "testing"
+      scenario_id: 9
+      label: 1

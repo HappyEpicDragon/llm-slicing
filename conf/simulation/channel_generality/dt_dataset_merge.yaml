@@ -1,0 +1,16 @@
+# @package _global_
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: dt_dataset_merge
+workdir: ${hydra:runtime.output_dir}
+
+dt_dataset_merge:
+  ppo_active_scenario_list: [0, 2]
+  env_active_scenario_list: [0, 2]
+  dataset_base_dir: "/root/decision_transformer_slicing/data/channel_generality/dt/dataset"
+
+

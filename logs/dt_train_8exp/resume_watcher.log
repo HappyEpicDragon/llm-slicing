@@ -1,0 +1,16 @@
+[launcher] Background watchers started for GPU2 (E3) and GPU3 (E4).
+[launcher] Note: E9/E10 are still on the old 30ep chain in dt_E1/dt_E2.
+[launcher] ACTION REQUIRED when E5/E6 finish:
+  1) Kill dt_E1: tmux kill-session -t dt_E1
+  2) Kill dt_E2: tmux kill-session -t dt_E2
+  3) Launch E9 60ep: tmux new-session -d -s dt_E9 "bash /root/decision_transformer_slicing/logs/dt_train_8exp/scripts/train_E9_60ep.sh"
+  4) Launch E10 60ep: tmux new-session -d -s dt_E10 "bash /root/decision_transformer_slicing/logs/dt_train_8exp/scripts/train_E10_60ep.sh"
+[wait] Waiting for GPU 2 to be free...
+  5) After E9/E10 finish, run resume_E1 and resume_E2.
+[wait] Waiting for GPU 3 to be free...
+[wait] GPU 2 is free.
+[launch] Starting resume_E3 on GPU 2
+[launch] tmux session dt_E3r started
+[wait] GPU 3 is free.
+[launch] Starting resume_E4 on GPU 3
+[launch] tmux session dt_E4r started

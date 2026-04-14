@@ -1,0 +1,23 @@
+✨ [1mPixi task ([0m[32m[1msim[0m[1m): [0m[34m[1mpython -c "import sys, subprocess; subprocess.run(['python', 'main.py', f'simulation=channel_generality/{sys.argv[1]}'] + sys.argv[2:])"[0m [34mtest_dt_v2 test_dt_v2.model_path=/root/decision_transformer_slicing/data/channel_generality/dt_v2_8exp/dt_model_E4_slice_attn/epoch_60.pth test_dt_v2.meta_path=/root/decision_transformer_slicing/data/channel_generality/dt_v2_8exp/dataset_D-A/metadata.json test_dt_v2.encoder_type=slice_attn test_dt_v2.model.n_layer=6 test_dt_v2.model.n_head=8 test_dt_v2.model.embed_dim=512 test_dt_v2.test_scenarios=[5,6,7,8,9] test_dt_v2.test_seeds=[0] test_dt_v2.n_episodes=20 test_dt_v2.device=cuda test_dt_v2.save_root=/root/decision_transformer_slicing/data/channel_generality/dt_v2_8exp/eval_ood/E4[0m[33m[0m
+/root/decision_transformer_slicing/.pixi/envs/default/lib/python3.10/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'conf': Defaults list is missing `_self_`. See https://hydra.cc/docs/1.2/upgrades/1.0_to_1.1/default_composition_order for more information
+  warnings.warn(msg, UserWarning)
+[2026-04-03 04:25:21,735][__main__][INFO] - =================================================
+[2026-04-03 04:25:21,735][__main__][INFO] - 🚀 开始执行仿真项目
+[2026-04-03 04:25:21,735][__main__][INFO] - =================================================
+[2026-04-03 04:25:21,735][__main__][INFO] - 🎯 Current Experiment Name: 'channel_generality'
+[2026-04-03 04:25:21,735][__main__][INFO] - 🎯 Current Experiment Step: 'test_dt_v2'
+[2026-04-03 04:25:21,735][__main__][INFO] - 🏃‍ 开始运行仿真...
+Current Simulation: Channel Generality
+Current mode: test_dt_v2
+============================================================
+
+[test_dt_v2] model loaded from /root/decision_transformer_slicing/data/channel_generality/dt_v2_8exp/dt_model_E4_slice_attn/epoch_60.pth
+  S5: hp_v=0.0000 nhp_v=0.0345 hp_d=0.0000 nhp_d=-0.0078 comb=0.0345
+  S6: hp_v=0.0000 nhp_v=0.0295 hp_d=0.0000 nhp_d=-0.0066 comb=0.0295
+  S7: hp_v=0.0000 nhp_v=0.0395 hp_d=0.0000 nhp_d=-0.0101 comb=0.0395
+  S8: hp_v=0.0000 nhp_v=0.0022 hp_d=0.0000 nhp_d=-0.0001 comb=0.0022
+  S9: hp_v=0.0000 nhp_v=0.0493 hp_d=0.0000 nhp_d=-0.0071 comb=0.0493
+
+[test_dt_v2] TOTAL combined: 0.1550
+[2026-04-03 04:37:01,444][__main__][INFO] - 🎉 仿真成功完成！
+[2026-04-03 04:37:01,444][__main__][INFO] - =================================================

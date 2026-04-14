@@ -1,0 +1,43 @@
+# @package _global_
+
+defaults:
+  - /environment: single_scenario_env
+  - /agent: ray_agent
+
+name: channel_generality
+mode: test_ppo_baseline_multi
+workdir: ${hydra:runtime.output_dir}
+
+test_ppo_baseline_multi:
+  environment: ${environment}
+  agent: ${agent}
+  hydra_workdir: ${hydra:runtime.output_dir}
+
+  # 训练完成后，将此路径替换为实际的 checkpoint 目录
+  # 例如: outputs/runs/channel_generality/train_ppo_baseline_across_scenario/2026-XX-XX/ray_results/ppo_baseline/
+  # checkpoint_path: /root/decision_transformer_slicing/data/channel_generality/ppo_baseline/checkpoints/scenario_all_5/
+  checkpoint_path: /root/decision_transformer_slicing/data/channel_generality/ppo_multi/checkpoints/scenario_0to4/latest/ray_results/ppo_baseline/
+  metric_name: evaluation/env_runners/episode_return_mean
+  mode: max
+
+  # 每个测试场景跑的 episode 数量
+  test_episodes: 20
+
+  # 多种子评估（M8）；设为 [42] 可恢复旧行为
+  test_seeds: [0, 1, 2, 3, 4]
+
+  # 结果保存根目录（标准 JSON 格式，供绘图脚本读取）
+  save_root: data/channel_generality/ppo_multi
+  clean_before_save: false
+
+  env_updates:
+    mode: testing
+    scenario_mode: inside
+    # 5 个测试场景（与训练场景 0-4 不重叠）
+    inside:
+      testing:
+        active_scenario_list: [5, 6, 7, 8, 9]
+      training:
+        active_scenario_list: [5]
+      evaluating:
+        active_scenario_list: [5]

@@ -1,0 +1,32 @@
+# @package _global_
+# CQL (B1 Baseline) 测试配置
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: test_cql
+workdir: ${hydra:runtime.output_dir}
+
+test_cql:
+  model_root: data/channel_generality/cql_baseline/models
+  prefer_latest: false
+  strict_model_check: true
+  model_seed: null
+
+  save_root: data/channel_generality/cql_baseline
+  clean_before_save: false
+
+  test_scenarios: [5, 6, 7, 8, 9]
+  test_seeds: [0, 1, 2, 3, 4]
+  n_episodes: 100
+  # OOD episode range (s5-s9 all 100 episodes available)
+  init_episode: 0
+  max_episode: 100
+
+  variants: [expert]
+
+  env_updates:
+    mode: testing
+    scenario_mode: inside
+    model_name: cql_test

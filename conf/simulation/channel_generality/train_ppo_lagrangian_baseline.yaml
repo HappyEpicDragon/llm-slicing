@@ -1,0 +1,40 @@
+# @package _global_
+# PPO-Lagrangian Baseline 训练配置
+# 环境后端：CommunicationEnv + IBSched（与 ppo-baseline / dt-baseline 相同）
+# 训练：s0–s4，ep 0–59（60 条信道记录），seed=0
+
+defaults:
+  - /environment: single_scenario_env
+
+name: channel_generality
+mode: train_ppo_lagrangian_baseline
+
+train_ppo_lagrangian_baseline:
+  # 训练场景：s0–s4 联合训练
+  scenarios: [0, 1, 2, 3, 4]
+
+  seed: 0
+
+  # 模型保存路径
+  save_path: data/channel_generality/ppo_lagrangian_baseline/models/scen_all_seed0
+  asset:
+    use_versioned_runs: true
+    run_id: auto
+    clean_before_run: false
+    update_latest: true
+
+  # 训练步数（与 ppo_lagrangian_v2 对齐）
+  total_timesteps: 1000000
+
+  # Lagrangian 超参数（参考 [20] M. Zangooei et al., IEEE JSAC 2024）
+  cost_limit: 1.0e-4
+  lagrangian_lr: 1.0e-7
+  initial_lambda: 10.0
+
+  # PPO 超参数
+  actor_lr: 8.0e-5
+  critic_lr: 1.0e-3
+  gamma: 0.4
+  n_steps_per_rollout: 500
+
+  device: cpu

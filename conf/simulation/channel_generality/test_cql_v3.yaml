@@ -1,0 +1,21 @@
+# @package _global_
+# CQL-v3 评测配置（s5-s9 OOD 测试）
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: test_cql_v3
+
+test_cql_v3:
+  model_root:  data/channel_generality/cql_v3_400k/models
+  save_root:   data/channel_generality/cql_v3_400k
+
+  test_scenarios: [5, 6, 7, 8, 9]
+  test_seeds:     [0, 1, 2, 3, 4]
+  n_episodes:     100
+
+  # 固定使用 seed=0 的模型，5 个 test seed 共享同一模型
+  model_seed: 0
+
+  device: cuda:0

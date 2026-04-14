@@ -1,0 +1,11 @@
+debug_mode: false
+enable_masks: true
+param_config_mode: "default"
+param_config_scenario: null
+param_config_agent: null
+restore: false
+stochastic_policy: false
+hyper_opt_algo: "asha"
+hyper_opt_enable: false
+shared_policies: true
+number_rollout_workers: ${oc.select:experiment.train_ppo.number_rollout_workers, 5}

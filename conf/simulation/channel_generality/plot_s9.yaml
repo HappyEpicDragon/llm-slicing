@@ -1,0 +1,25 @@
+# @package _global_
+# 快速查看 Scenario 9 上三个方法的对比结果
+# 用法：pixi run sim plot_s9
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: plot
+workdir: ${hydra:runtime.output_dir}
+
+plot:
+  json_data_base_dir: "/root/decision_transformer_slicing/data/channel_generality"
+  save_dir: ${workdir}
+  plot_scenario_list: [9]
+
+  baselines:
+    - ppo_ha_weighted   # TEST_PPO_TEACHER
+    - dt_baseline       # TEST_DT_BASELINE
+    - dt                # DT_TESTING (IDT)
+
+  metrics:
+    - normalized_distance_fulfill_cumsum
+    - normalized_violations_per_episode_cumsum

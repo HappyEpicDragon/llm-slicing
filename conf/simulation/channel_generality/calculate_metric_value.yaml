@@ -1,0 +1,49 @@
+# @package _global_
+
+defaults:
+  - /environment: env_psjra
+  - /agent: ray_agent
+
+name: channel_generality
+mode: calculate_metric_value
+workdir: ${hydra:runtime.output_dir}
+
+test_scenario: 9
+
+calculate_metric_value:
+  baselines:
+#    - ppo_baseline
+#    - ppo_lstm
+#    - dt
+#    - ppo_oneshot
+#    - ppo_ha
+#    - ppo_ha_weighted
+    - dt_baseline
+#    - ppo_baseline_finetuned
+
+  test_scenario_list: # null
+    - ${test_scenario}
+
+  model_names: null
+#    - CKP_0
+#    - CKP_1
+#    - CKP_2
+#    - CKP_3
+#    - CKP_4
+#    - CKP_9
+#    - CKP_14
+#    - CKP_24
+#    - CKP_49
+#    - Best_Model
+
+  test_episode_begin: 60
+  test_episode_end: 80
+  cross_scenario_skip_episode: 100
+  data_base_dir: "/root/decision_transformer_slicing/data/channel_generality"
+  json_save_base_dir: "/root/decision_transformer_slicing/data/channel_generality"
+  metrics:
+    - normalized_distance_fulfill_cumsum
+    - normalized_violations_per_episode_cumsum
+
+
+

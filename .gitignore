@@ -1,0 +1,31 @@
+# pixi environments
+.pixi
+*.egg-info
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cursor/
+.cursorrules
+
+docs/
+
+data/
+outputs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+

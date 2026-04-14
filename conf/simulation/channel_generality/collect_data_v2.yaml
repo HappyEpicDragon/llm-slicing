@@ -1,0 +1,29 @@
+# @package _global_
+# Collect PPO-v2 teacher trajectories for DT training (epsilon-greedy).
+# Saves pkl files in dataset/training/ compatible with HierarchicalDTDataset.
+# Run: pixi run sim channel_generality/collect_data_v2 \
+#        collect_data_v2.model_path=<path>
+
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: collect_data_v2
+
+collect_data_v2:
+  environment: ${environment}
+
+  # PPO teacher model to use for data collection
+  model_path: data/channel_generality/dt_v2_mean_rwd/ppo_s0/best_model/best_model.zip
+  teacher_kind: single              # single (per-scenario expert) | joint
+  teacher_id: null                  # null → inferred from model_path directory name
+
+  # Collection config
+  scenarios: [0, 1, 2, 3, 4]       # which scenarios to collect
+  n_episodes: 60                    # per scenario; uses training ep 0-59
+  epsilon: 0.1                      # epsilon-greedy exploration rate
+  seed: 10
+  parallel: 5                       # multiprocessing workers
+
+  # Output: dataset/training/<scenario_id>/<episode>.pkl
+  output: data/channel_generality/dt_v2_mean_rwd/dataset

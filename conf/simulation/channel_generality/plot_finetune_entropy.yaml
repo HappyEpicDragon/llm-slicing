@@ -1,0 +1,21 @@
+# @package _global_
+
+name: channel_generality
+mode: plot_finetune_entropy
+workdir: ${hydra:runtime.output_dir}
+
+plot_finetune_entropy:
+  # Ray Tune 训练产生的 progress.csv 路径
+  progress_csv_path: /root/decision_transformer_slicing/data/channel_generality/ppo_baseline/checkpoints/finetune/PPO_marl_comm_env_0a7c0_00000_0_2025-12-16_14-39-58/progress.csv
+
+  # 图片保存目录（使用 Hydra 输出目录）
+  save_dir: ${workdir}
+
+  # 移动平均窗口大小（迭代数），原始曲线较噪，建议 15-30
+  smooth_window: 20
+
+  # Collapse zone 起始迭代（在图上画垂直虚线）
+  collapse_iter: 300
+
+  # 保存图片分辨率
+  dpi: 300

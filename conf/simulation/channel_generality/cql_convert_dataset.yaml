@@ -1,0 +1,23 @@
+# @package _global_
+# 将 IDT pkl 数据集转换为 d3rlpy MDPDataset 格式
+# 用法：pixi run sim cql_convert_dataset
+
+name: channel_generality
+mode: cql_convert_dataset
+
+cql_convert_dataset:
+  # 输入目录（IDT pkl 格式）
+  # - expert: 语义动作（template + intra）
+  # - raw:    raw-action 表示（当前默认来自 dt_baseline）
+  # 注意：raw != reward-only curation。A2 消融请显式使用 reward_only 路径。
+  input_expert: data/channel_generality/dt/dataset/training/
+  input_raw:    data/channel_generality/dt_baseline/dataset/training/
+  # input_reward_only: data/channel_generality/dt_reward_only/dataset/training/
+
+  # 输出 .h5 路径
+  output_expert: data/channel_generality/cql/dataset_expert.h5
+  output_raw:    data/channel_generality/cql/dataset_raw.h5
+  # output_reward_only: data/channel_generality/cql/dataset_reward_only.h5
+
+  # 要转换的变体列表：expert / raw（可选新增 reward_only）
+  variants: [expert, raw]

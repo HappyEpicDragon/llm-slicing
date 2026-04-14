@@ -1,0 +1,38 @@
+# @package _global_
+# PPO-Lagrangian Baseline 测试配置
+# 环境后端：CommunicationEnv + IBSched（与 ppo-baseline / dt-baseline 相同）
+# 测试：s5–s9，ep 0–99（100 条信道记录，OOD），5 个随机种子
+
+defaults:
+  - /environment: single_scenario_env
+
+name: channel_generality
+mode: test_ppo_lagrangian_baseline
+
+test_ppo_lagrangian_baseline:
+  # 模型根目录（对应 train 的 save_path 目录）
+  model_root: data/channel_generality/ppo_lagrangian_baseline/models
+  prefer_latest: true
+  strict_model_check: true
+
+  # 训练模型 seed（单模型 × 多环境 seed 测试）
+  model_seed: 0
+
+  # 结果保存根目录
+  save_root: data/channel_generality/ppo_lagrangian_baseline
+  clean_before_save: false
+
+  # 测试场景（OOD eval set）
+  test_scenarios: [5, 6, 7, 8, 9]
+
+  # 测试随机种子
+  test_seeds: [0, 1, 2, 3, 4]
+
+  # 每个 seed 的 episode 数（ep 0–99，100 个 OOD episode）
+  n_episodes: 100
+
+  # episode 范围（覆盖 OOD 场景的全部 100 个记录）
+  init_episode: 0
+  max_episode: 100
+
+  device: cpu

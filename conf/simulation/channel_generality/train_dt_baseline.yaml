@@ -1,0 +1,29 @@
+# @package _global_
+defaults:
+  - /environment: env_ha
+
+name: channel_generality
+mode: train_dt_baseline
+
+train_dt_baseline:
+  dataset_dir: data/channel_generality/dt_baseline_v2/dataset
+  save_dir: data/channel_generality/dt_baseline_v2/dt_model
+
+  model:
+    context_len: 20
+    embed_dim: 512
+    n_layer: 6
+    n_head: 8
+    activation: relu
+    dropout: 0.1
+
+  optimizer:
+    epochs: 60
+    batch_size: 1024
+    lr: 1.0e-4
+    rtg_scale: 100000.0
+    total_epochs: null
+
+  device: cuda
+  grad_accum: 1
+  resume_from: null

@@ -1,0 +1,16 @@
+# @package _global_
+# MLP ablation: reuse DT training pipeline, replace transformer backbone with MLP.
+
+defaults:
+  - /simulation/channel_generality/dt_training
+  - _self_
+
+name: channel_generality
+mode: dt_training
+
+dt_training:
+  train_dt:
+    model:
+      backbone: mlp
+    saving:
+      save_path: data/channel_generality/dt_mlp/model

@@ -1,0 +1,15 @@
+# @package _global_
+# MLP ablation: evaluate MLP backbone with the same DT testing protocol.
+
+defaults:
+  - /simulation/channel_generality/dt_testing
+  - _self_
+
+name: channel_generality
+mode: dt_testing
+
+dt_testing:
+  model_path: /root/decision_transformer_slicing/data/channel_generality/dt_mlp/model/best_dt_model.pth
+  save_root: data/channel_generality/dt_mlp
+  model:
+    backbone: mlp
