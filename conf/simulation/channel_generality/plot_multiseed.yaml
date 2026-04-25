@@ -6,6 +6,7 @@ defaults:
 
 name: channel_generality
 mode: plot_multiseed
+workdir: ${hydra:runtime.output_dir}
 
 plot_multiseed:
   scenario: 9

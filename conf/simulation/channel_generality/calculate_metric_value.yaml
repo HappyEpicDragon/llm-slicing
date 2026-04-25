@@ -12,14 +12,8 @@ test_scenario: 9
 
 calculate_metric_value:
   baselines:
-#    - ppo_baseline
-#    - ppo_lstm
-#    - dt
-#    - ppo_oneshot
-#    - ppo_ha
-#    - ppo_ha_weighted
+    - ppo_ha_weighted
     - dt_baseline
-#    - ppo_baseline_finetuned
 
   test_scenario_list: # null
     - ${test_scenario}

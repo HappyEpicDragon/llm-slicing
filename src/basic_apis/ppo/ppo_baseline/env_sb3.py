@@ -7,7 +7,6 @@ import numpy as np
 
 
 from src.basic_apis.network_slicing_business.components import Association, Basestations, Channel, Metrics, Mobility, Slices, Traffic, UEs
-from src.basic_apis.network_slicing_business.path_context import PathContext
 
 
 # =====================================================================
@@ -196,11 +195,13 @@ class ComponentFactory:
                  config: EnvironmentConfig,
                  component_classes: ComponentClasses,
                  np_random,
-                 path_context: PathContext = None,):
+                 paths_cfg=None,
+                 workdir: str = None,):
         self.config = config
         self.component_classes = component_classes
         self.np_random = np_random
-        self.path_context = path_context
+        self.paths_cfg = paths_cfg
+        self.workdir = workdir
 
     def create_scenario_components(self,
                                    episode_number: int,
@@ -255,7 +256,8 @@ class ComponentFactory:
             self.config.basestation_config.max_number_basestations,
             self.config.slice_config.max_number_slices,
             self.np_random,
-            path_context=self.path_context,
+            paths_cfg=self.paths_cfg,
+            workdir=self.workdir,
         )
 
     def _get_initial_associations(self, associations: Association,
@@ -309,7 +311,8 @@ class ComponentFactory:
         """创建信道组件"""
         return self.component_classes.ChannelClass(
             self.config.basestation_config.num_available_rbs,
-            path_context=self.path_context,
+            paths_cfg=self.paths_cfg,
+            workdir=self.workdir,
         )
 
     def _create_traffic(self) -> Traffic:
@@ -321,7 +324,7 @@ class ComponentFactory:
 
     def _create_metrics(self) -> Metrics:
         """创建指标组件"""
-        return Metrics(self.path_context)
+        return Metrics(paths_cfg=self.paths_cfg, workdir=self.workdir)
 
 
 # =====================================================================
@@ -553,7 +556,8 @@ class CommunicationEnv(gym.Env):
             AssociationClass=cfg['association_class']
         )
 
-        self.path_context = cfg['path_context']
+        self.paths_cfg = cfg.get('paths_cfg', None)
+        self.workdir = cfg.get('workdir', None)
 
         agent_functions = {}
         self.agent_functions = AgentFunctions(agent_functions)
@@ -567,7 +571,11 @@ class CommunicationEnv(gym.Env):
         self.step_executor = None
 
         self.component_factory = ComponentFactory(
-            self.config, self.component_classes, self.np_random, self.path_context
+            self.config,
+            self.component_classes,
+            self.np_random,
+            paths_cfg=self.paths_cfg,
+            workdir=self.workdir,
         )
 
         self._create_scenario()
@@ -696,7 +704,11 @@ class CommunicationEnv(gym.Env):
         )
 
         self.component_factory = ComponentFactory(
-            self.config, self.component_classes, self.np_random, self.path_context
+            self.config,
+            self.component_classes,
+            self.np_random,
+            paths_cfg=self.paths_cfg,
+            workdir=self.workdir,
         )
 
         self._create_scenario()

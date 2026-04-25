@@ -18,7 +18,6 @@ from omegaconf import OmegaConf
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 from src.basic_apis.dt_v2.model_baseline import build_dt_baseline
-from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.ppo.ppo_baseline.env_ray import env_creator
 
 NUM_SLICES = 5
@@ -215,7 +214,7 @@ def _save_json(data, path):
         json.dump(data, f, indent=2)
 
 
-def _build_env_config(cfg_environment, scenario_id, path_context, mode="testing",
+def _build_env_config(cfg_environment, scenario_id, paths_cfg=None, workdir=None, mode="testing",
                       init_episode=None, max_episode=None):
     env_config = OmegaConf.to_container(cfg_environment, resolve=True)
     scenario_mode = env_config.get("scenario_mode", "inside")
@@ -226,7 +225,8 @@ def _build_env_config(cfg_environment, scenario_id, path_context, mode="testing"
         env_config[scenario_mode][mode]["initial_episode"] = init_episode
     if max_episode is not None:
         env_config[scenario_mode][mode]["max_episode"] = max_episode
-    env_config["path_context"] = path_context
+    env_config["paths_cfg"] = paths_cfg
+    env_config["workdir"] = workdir
     return env_config
 
 
@@ -287,7 +287,8 @@ def main():
                 env_settings[scenario_mode]["testing"]["initial_episode"] = args.init_episode
             if args.max_episode is not None:
                 env_settings[scenario_mode]["testing"]["max_episode"] = args.max_episode
-            env_settings["path_context"] = PathContext(os.getcwd())
+            env_settings["paths_cfg"] = None
+            env_settings["workdir"] = os.getcwd()
             env_settings["seed"] = seed
 
             env = env_creator(env_settings)
@@ -344,9 +345,11 @@ def main():
                os.path.join(args.save_root, "global_summary.json"))
 
 
-def test_dt_baseline(cfg, path_context):
+def test_dt_baseline(cfg, paths_cfg=None, workdir=None):
     """Hydra entry point: called by channel_generality.py → test_dt_baseline mode."""
     tc = cfg.test_dt_baseline
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", os.getcwd()))
     device = torch.device(str(tc.device))
     torch.set_num_threads(2)
 
@@ -372,8 +375,6 @@ def test_dt_baseline(cfg, path_context):
     print(f"[test_dt_baseline] model loaded from {tc.model_path}")
 
     env_cfg_raw = OmegaConf.to_container(tc.environment, resolve=True)
-    pm = path_context
-
     all_results = {}
     for scen in list(tc.test_scenarios):
         scen_hp, scen_nhp, scen_hp_d, scen_nhp_d = [], [], [], []
@@ -388,7 +389,8 @@ def test_dt_baseline(cfg, path_context):
                 env_config[scenario_mode]["testing"]["initial_episode"] = int(tc.init_episode)
             if tc.get("max_episode") is not None:
                 env_config[scenario_mode]["testing"]["max_episode"] = int(tc.max_episode)
-            env_config["path_context"] = pm
+            env_config["paths_cfg"] = paths_cfg
+            env_config["workdir"] = workdir
             env_config["seed"] = seed
 
             env = env_creator(env_config)

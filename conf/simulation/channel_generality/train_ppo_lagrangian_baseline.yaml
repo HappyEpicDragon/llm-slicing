@@ -8,6 +8,7 @@ defaults:
 
 name: channel_generality
 mode: train_ppo_lagrangian_baseline
+workdir: ${hydra:runtime.output_dir}
 
 train_ppo_lagrangian_baseline:
   # 训练场景：s0–s4 联合训练

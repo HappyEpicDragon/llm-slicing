@@ -10,6 +10,7 @@ defaults:
 
 name: channel_generality
 mode: test_dt_v2_tiny
+workdir: ${hydra:runtime.output_dir}
 
 test_dt_v2_tiny:
   environment: ${environment}

@@ -91,9 +91,11 @@ def _load_lagrangian_for_inference(model_path: str, obs_dim: int, device: str = 
     return instance
 
 
-def test_ppo_lagrangian(cfg: DictConfig, path_context):
+def test_ppo_lagrangian(cfg: DictConfig, paths_cfg=None, workdir=None):
     """Lagrangian PPO 测试主函数"""
     test_cfg = cfg.test_ppo_lagrangian
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", os.getcwd()))
 
     test_scenarios = list(test_cfg.get('test_scenarios', [5, 6, 7, 8, 9]))
     test_seeds = list(test_cfg.get('test_seeds', [0, 1, 2, 3, 4]))
@@ -130,7 +132,12 @@ def test_ppo_lagrangian(cfg: DictConfig, path_context):
             env_settings[scenario_mode]['testing']['active_scenario_list'] = [scenario_id]
 
             from omegaconf import OmegaConf as OC
-            env = HierarchicalSlicingEnvV2(OC.create(env_settings), np.random.default_rng(seed), path_context)
+            env = HierarchicalSlicingEnvV2(
+                OC.create(env_settings),
+                np.random.default_rng(seed),
+                paths_cfg=paths_cfg,
+                workdir=workdir,
+            )
 
             # 加载模型：
             # - model_seed 设定时：使用单个训练模型，复用到所有 test_seeds

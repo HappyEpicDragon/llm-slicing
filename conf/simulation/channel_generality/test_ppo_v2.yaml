@@ -8,6 +8,7 @@ defaults:
 
 name: channel_generality
 mode: test_ppo_v2
+workdir: ${hydra:runtime.output_dir}
 
 test_ppo_v2:
   environment: ${environment}

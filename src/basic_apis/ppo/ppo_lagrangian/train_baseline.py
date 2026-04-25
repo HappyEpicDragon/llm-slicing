@@ -31,13 +31,14 @@ from src.basic_apis.asset_utils import (
 NUM_SLICES = 5
 
 
-def _build_comm_env_cfg(base_env_cfg: dict, path_context,
+def _build_comm_env_cfg(base_env_cfg: dict, paths_cfg, workdir: str,
                         active_scenarios: list, seed: int) -> dict:
     """从 single_scenario_env 格式的 Hydra 环境配置构造 CommunicationEnv 所需的 dict。"""
     from hydra.utils import get_class
 
     cfg = dict(base_env_cfg)
-    cfg['path_context'] = path_context
+    cfg['paths_cfg'] = paths_cfg
+    cfg['workdir'] = workdir
     cfg['seed'] = seed
     cfg['seed_test'] = seed
     cfg['mode'] = 'training'
@@ -229,9 +230,11 @@ class LagrangianAugmentedBaselineEnv(gym.Env):
         self._inner.close()
 
 
-def train_ppo_lagrangian_baseline(cfg: DictConfig, path_context):
+def train_ppo_lagrangian_baseline(cfg: DictConfig, paths_cfg=None, workdir=None):
     """PPO-Lagrangian Baseline 训练主函数（使用 CommunicationEnv + IBSched 环境）。"""
     train_cfg = cfg.train_ppo_lagrangian_baseline
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", os.getcwd()))
 
     seed = int(train_cfg.get('seed', 0))
     random.seed(seed)
@@ -243,7 +246,7 @@ def train_ppo_lagrangian_baseline(cfg: DictConfig, path_context):
 
     # 从 Hydra 环境配置构建 CommunicationEnv cfg dict
     base_env_cfg = OmegaConf.to_container(cfg.environment, resolve=True)
-    comm_env_cfg = _build_comm_env_cfg(base_env_cfg, path_context, scenarios, seed)
+    comm_env_cfg = _build_comm_env_cfg(base_env_cfg, paths_cfg, workdir, scenarios, seed)
 
     # 保存路径
     save_path = str(train_cfg.get(

@@ -19,7 +19,6 @@ from stable_baselines3.common.callbacks import (
 # Local Imports
 from src.basic_apis.ppo.ppo_ha_weighted.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.ppo.ppo_ha_weighted.agent_hierarchical import HierarchicalSmartPolicy
-from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
 
 
@@ -268,11 +267,16 @@ class TtiViolationRateCallback(BaseCallback):
 # =========================================================================
 # 2. 核心训练接口
 # =========================================================================
-def make_env(cfg, path_context, rank=0, seed=0, reward_fn=None):
+def make_env(cfg, paths_cfg=None, workdir=None, rank=0, seed=0, reward_fn=None):
     def _init():
         env_config = cfg.env_settings if hasattr(cfg, 'env_settings') else cfg
         if 'env_settings' in cfg: env_config = cfg.env_settings
-        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_context)
+        env = HierarchicalSlicingEnv(
+            env_config,
+            np.random.default_rng(seed + rank),
+            paths_cfg=paths_cfg,
+            workdir=workdir,
+        )
         if hasattr(cfg, 'train_rl') and hasattr(cfg.train_rl, 'reward_weights'):
             env.reward_weights = cfg.train_rl.reward_weights
         if reward_fn is not None:
@@ -345,8 +349,10 @@ class EntropyScheduleCallback(BaseCallback):
         return True
 
 
-def train(cfg: DictConfig, path_context: PathContext, reward_fn=None, seed: Optional[int] = None):
+def train(cfg: DictConfig, paths_cfg=None, workdir: Optional[str] = None, reward_fn=None, seed: Optional[int] = None):
     env_config = cfg.environment
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", os.getcwd()))
     if seed is not None:
         effective_seed = seed
     else:
@@ -383,14 +389,28 @@ def train(cfg: DictConfig, path_context: PathContext, reward_fn=None, seed: Opti
         print(f"[Asset] versioned run dir: {run_dir}")
 
     # 创建环境
-    env = DummyVecEnv([make_env(env_config, path_context, rank=0, seed=effective_seed, reward_fn=reward_fn)])
+    env = DummyVecEnv([make_env(
+        env_config,
+        paths_cfg=paths_cfg,
+        workdir=workdir,
+        rank=0,
+        seed=effective_seed,
+        reward_fn=reward_fn,
+    )])
 
     eval_env_config = env_config.copy()
     eval_env_config.env_settings.mode = 'evaluating'
     eval_env_config.env_settings[scenario_mode]['evaluating'].active_scenario_list = cfg.env_updates[scenario_mode][
         'evaluating'].active_scenario_list
 
-    eval_env = DummyVecEnv([make_env(eval_env_config, path_context, rank=0, seed=effective_seed + 1000, reward_fn=reward_fn)])
+    eval_env = DummyVecEnv([make_env(
+        eval_env_config,
+        paths_cfg=paths_cfg,
+        workdir=workdir,
+        rank=0,
+        seed=effective_seed + 1000,
+        reward_fn=reward_fn,
+    )])
     rl_cfg = cfg.environment.train_rl
 
     net_arch = dict(pi=OmegaConf.to_container(rl_cfg.network.pi_head),
@@ -481,7 +501,6 @@ if __name__ == "__main__":
     if os.path.exists(config_path):
         cfg = OmegaConf.load(config_path);
         work_dir = os.getcwd();
-        pm = PathContext(work_dir)
-        train(cfg, pm)
+        train(cfg, workdir=work_dir)
     else:
         print(f"❌ Config file {config_path} not found.")

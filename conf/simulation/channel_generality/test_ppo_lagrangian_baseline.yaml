@@ -8,6 +8,7 @@ defaults:
 
 name: channel_generality
 mode: test_ppo_lagrangian_baseline
+workdir: ${hydra:runtime.output_dir}
 
 test_ppo_lagrangian_baseline:
   # 模型根目录（对应 train 的 save_path 目录）

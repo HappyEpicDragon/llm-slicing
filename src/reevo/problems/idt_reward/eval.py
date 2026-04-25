@@ -133,17 +133,17 @@ def train_and_evaluate(scenario=None):
     train_cfg_dict["environment"]["train_rl"]["total_timesteps"] = proxy_steps
     proxy_train_cfg = OmegaConf.create(train_cfg_dict)
 
-    from src.basic_apis.network_slicing_business.path_context import create_path_context
     from src.basic_apis.ppo.ppo_ha_weighted.train import train
-    path_context = create_path_context(
-        cfg,
-        hydra_workdir=tmp_dir,
-        project_root=project_root,
-    )
 
     # 训练 PPO（注入 reward fn）
     try:
-        metrics = train(proxy_train_cfg, path_context, reward_fn=gpt.compute_reward, seed=seed)
+        metrics = train(
+            proxy_train_cfg,
+            paths_cfg=cfg.paths,
+            workdir=tmp_dir,
+            reward_fn=gpt.compute_reward,
+            seed=seed,
+        )
         hp_viol = float(metrics.get("hp_violation_rate", 1.0))
         nhp_viol = float(metrics.get("nhp_violation_rate", 1.0))
     except Exception as e:

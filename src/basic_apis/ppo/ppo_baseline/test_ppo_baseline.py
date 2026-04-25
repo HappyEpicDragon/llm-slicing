@@ -123,8 +123,10 @@ class PhysicsProbeBaseline:
         print("=" * 86 + "\n")
 
 
-def test_ppo_baseline(cfg, path_context):
+def test_ppo_baseline(cfg, paths_cfg=None, workdir=None):
     """使用加载的模型进行测试，不依赖 algo 的 workers"""
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", cfg.get("hydra_workdir", ".")))
 
     # 1. 准备环境配置
     env_config = cfg.environment
@@ -136,7 +138,8 @@ def test_ppo_baseline(cfg, path_context):
     env_config['model_name'] = updates['model_name']
     env_config[scenario_mode]['testing']['active_scenario_list'] = updates[scenario_mode]['testing'][
         'active_scenario_list']
-    env_config["path_context"] = path_context
+    env_config["paths_cfg"] = paths_cfg
+    env_config["workdir"] = workdir
 
     checkpoint_path = cfg.checkpoint_path
 
@@ -642,11 +645,13 @@ def _run_evaluation_episodes(env_config, algo, test_episodes, desc="Testing"):
     return {}
 
 
-def test_ppo_baseline_finetune(cfg, path_context):
+def test_ppo_baseline_finetune(cfg, paths_cfg=None, workdir=None):
     """
     新的 Finetune 测试入口
     功能：加载 test_ckp_idx 列表中的 checkpoint 以及 Best Checkpoint，进行对比测试。
     """
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", cfg.get("hydra_workdir", ".")))
     # 1. 准备环境配置
     env_config = cfg.environment
     updates = cfg.env_updates
@@ -663,7 +668,8 @@ def test_ppo_baseline_finetune(cfg, path_context):
             env_config[scenario_mode][phase]['active_scenario_list'] = \
                 updates[scenario_mode][phase]['active_scenario_list']
 
-    env_config["path_context"] = path_context
+    env_config["paths_cfg"] = paths_cfg
+    env_config["workdir"] = workdir
 
     # 2. 初始化 Ray
     checkpoint_path = cfg.checkpoint_path
@@ -922,7 +928,7 @@ def _run_scenario_test(env_config: dict, algo, test_episodes: int, scenario_id: 
             test_env.close()
 
 
-def test_ppo_baseline_multi(cfg, path_context):
+def test_ppo_baseline_multi(cfg, paths_cfg=None, workdir=None):
     """
     Multi-scenario PPO Baseline 评估入口（含 seed 循环）。
 
@@ -931,11 +937,14 @@ def test_ppo_baseline_multi(cfg, path_context):
     2. 在每个场景 × 每个 seed 上跑 test_episodes 个 episode
     3. 汇总 mean ± std，保存 CSV 和标准 JSON（供绘图脚本读取）
     """
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", cfg.get("hydra_workdir", ".")))
     import copy
     import json
 
     env_config_base = OmegaConf.to_container(cfg.environment, resolve=True)
-    env_config_base["path_context"] = path_context
+    env_config_base["paths_cfg"] = paths_cfg
+    env_config_base["workdir"] = workdir
 
     checkpoint_path = cfg.checkpoint_path
     test_scenarios = list(cfg.env_updates.inside.testing.active_scenario_list)
@@ -1093,7 +1102,7 @@ def test_ppo_baseline_multi(cfg, path_context):
                   f"HP={s['hp_viol_mean']:.4f}±{s['hp_viol_std']:.4f}")
 
         # 保存全局 CSV（含 seed 列）
-        output_dir = path_context.get_save_metrics_dir_path()
+        output_dir = workdir
         os.makedirs(output_dir, exist_ok=True)
         results_path = os.path.join(output_dir, "multi_scenario_ppo_results.csv")
         df = pd.DataFrame(all_results)

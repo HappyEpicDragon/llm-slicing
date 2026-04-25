@@ -187,7 +187,7 @@ def train(
     print(f"Training done. Final model: {final}")
 
 
-def train_hydra(cfg, path_context):
+def train_hydra(cfg):
     """Hydra entry point: called by channel_generality.py → train_dt_v2 mode."""
     tc = cfg.train_dt_v2
     resume_from = str(tc.resume_from) if getattr(tc, "resume_from", None) else None
@@ -213,7 +213,7 @@ def train_hydra(cfg, path_context):
     )
 
 
-def train_hydra_tiny(cfg, path_context):
+def train_hydra_tiny(cfg):
     """Hydra entry point: called by channel_generality.py → train_dt_v2_tiny mode."""
     tc = cfg.train_dt_v2_tiny
     resume_from = str(tc.resume_from) if getattr(tc, "resume_from", None) else None

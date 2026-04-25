@@ -9,6 +9,7 @@ defaults:
 
 name: channel_generality
 mode: train_dt_v2_tiny
+workdir: ${hydra:runtime.output_dir}
 
 train_dt_v2_tiny:
   environment: ${environment}

@@ -23,10 +23,9 @@ from src.basic_apis.ppo.ppo_ha_weighted.agent_hierarchical import (
     HierarchicalPooledAttentionPolicy,
     HierarchicalSliceAttnPolicy,
 )
-from src.basic_apis.network_slicing_business.path_context import PathContext
 
 
-def make_env_v2(env_settings, path_context, rank=0, seed=0, episode_offset=0):
+def make_env_v2(env_settings, paths_cfg=None, workdir=None, rank=0, seed=0, episode_offset=0):
     """Create a single EnvV2 factory.
 
     episode_offset staggers each subprocess's starting episode so that within
@@ -35,7 +34,12 @@ def make_env_v2(env_settings, path_context, rank=0, seed=0, episode_offset=0):
     cyclically over [init_ep, max_ep) as usual.
     """
     def _init():
-        env = HierarchicalSlicingEnvV2(env_settings, np.random.default_rng(seed + rank), path_context)
+        env = HierarchicalSlicingEnvV2(
+            env_settings,
+            np.random.default_rng(seed + rank),
+            paths_cfg=paths_cfg,
+            workdir=workdir,
+        )
         if episode_offset > 0:
             n_eps = env.max_ep - env.init_ep
             env.internal_episode_ptr = env.init_ep + (episode_offset % n_eps)
@@ -54,9 +58,11 @@ def train_v2(
     ent_coef=0.01,
     n_steps=512,
     n_envs=1,
+    paths_cfg=None,
+    workdir=None,
 ):
     env_cfg = OmegaConf.load("conf/environment/env_ha.yaml")
-    pm = PathContext(os.getcwd())
+    workdir = workdir or os.getcwd()
 
     # Training env
     train_settings = env_cfg.env_settings.copy()
@@ -77,12 +83,14 @@ def train_v2(
     n_train_eps = (train_settings.inside.training.max_scenario_episodes
                    - train_settings.inside.training.init_scenario_episode)
     train_fns = [
-        make_env_v2(train_settings, pm, rank=i, seed=seed + i,
+        make_env_v2(train_settings, paths_cfg=paths_cfg, workdir=workdir, rank=i, seed=seed + i,
                     episode_offset=(i * n_train_eps // n_envs) if n_envs > 1 else 0)
         for i in range(n_envs)
     ]
     env = SubprocVecEnv(train_fns) if n_envs > 1 else DummyVecEnv(train_fns)
-    eval_env = DummyVecEnv([make_env_v2(eval_settings, pm, rank=0, seed=seed + 1000)])
+    eval_env = DummyVecEnv([
+        make_env_v2(eval_settings, paths_cfg=paths_cfg, workdir=workdir, rank=0, seed=seed + 1000)
+    ])
 
     os.makedirs(save_dir, exist_ok=True)
     ckpt_dir = os.path.join(save_dir, "checkpoints")
@@ -156,14 +164,14 @@ def train_v2(
     eval_env.close()
 
 
-def train(cfg, path_context):
+def train(cfg, paths_cfg=None, workdir=None):
     """Hydra entry point: called by channel_generality.py → train_ppo_v2 mode.
 
     Reads cfg.train_ppo_v2 and delegates to train_v2().
-    path_context is accepted for API consistency but unused (train_v2 creates
-    its own from os.getcwd()).
     """
     tc = cfg.train_ppo_v2
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", os.getcwd()))
     train_v2(
         scenarios=tuple(tc.scenarios),
         total_timesteps=int(tc.ppo.total_timesteps),
@@ -174,6 +182,8 @@ def train(cfg, path_context):
         ent_coef=float(tc.ppo.ent_coef),
         n_steps=int(tc.ppo.n_steps),
         n_envs=int(tc.ppo.n_envs),
+        paths_cfg=paths_cfg,
+        workdir=workdir,
     )
 
 

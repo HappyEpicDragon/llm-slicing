@@ -9,6 +9,7 @@ defaults:
 
 name: channel_generality
 mode: collect_data_v2
+workdir: ${hydra:runtime.output_dir}
 
 collect_data_v2:
   environment: ${environment}

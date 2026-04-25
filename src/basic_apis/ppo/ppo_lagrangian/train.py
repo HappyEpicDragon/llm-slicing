@@ -30,9 +30,14 @@ class LagrangianAugmentedEnv(gym.Env):
     lagrangian 对象在训练过程中持续更新 λ，包装层每步都读取最新的 λ。
     """
 
-    def __init__(self, env_settings, np_random, path_context, lagrangian: "LagrangianPPO"):
+    def __init__(self, env_settings, np_random, paths_cfg, workdir, lagrangian: "LagrangianPPO"):
         super().__init__()
-        self._env = HierarchicalSlicingEnvV2(env_settings, np_random, path_context)
+        self._env = HierarchicalSlicingEnvV2(
+            env_settings,
+            np_random,
+            paths_cfg=paths_cfg,
+            workdir=workdir,
+        )
         self.lagrangian = lagrangian
         self.observation_space = self._env.observation_space
         self.action_space = self._env.action_space
@@ -54,9 +59,11 @@ class LagrangianAugmentedEnv(gym.Env):
         return self._env.render(mode)
 
 
-def train_ppo_lagrangian(cfg: DictConfig, path_context):
+def train_ppo_lagrangian(cfg: DictConfig, paths_cfg=None, workdir=None):
     """Lagrangian PPO 训练主函数"""
     train_cfg = cfg.train_ppo_lagrangian
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", os.getcwd()))
 
     seed = int(train_cfg.get('seed', 0))
     random.seed(seed)
@@ -130,7 +137,8 @@ def train_ppo_lagrangian(cfg: DictConfig, path_context):
             return LagrangianAugmentedEnv(
                 OC.create(env_s),
                 np.random.default_rng(rng_seed),
-                path_context,
+                paths_cfg,
+                workdir,
                 lagrangian,
             )
         return _init

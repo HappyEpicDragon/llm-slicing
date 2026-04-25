@@ -19,7 +19,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 
 from src.basic_apis.dt_v2.env_v2 import HierarchicalSlicingEnvV2, INTER_DIM, INTRA_DIM
 from src.basic_apis.dt_v2.model_v2 import build_dt_v2
-from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.general_utils import pad_stack_tensor
 
 NUM_SLICES = 5
@@ -228,7 +227,7 @@ def main():
     print(f"Action dims: {action_dims} (total {act_dim})")
 
     env_cfg = OmegaConf.load("conf/environment/env_ha.yaml")
-    pm = PathContext(os.getcwd())
+    workdir = os.getcwd()
 
     all_results = {}
     for scen in args.scenarios:
@@ -248,7 +247,7 @@ def main():
 
             def _make(c=cfg, s=seed):
                 def _init():
-                    return HierarchicalSlicingEnvV2(c, np.random.default_rng(s), pm)
+                    return HierarchicalSlicingEnvV2(c, np.random.default_rng(s), workdir=workdir)
                 return _init
 
             env = DummyVecEnv([_make()])
@@ -308,7 +307,7 @@ def main():
                os.path.join(args.save_root, "global_summary.json"))
 
 
-def test_dt_v2(cfg, path_context):
+def test_dt_v2(cfg, paths_cfg=None, workdir=None):
     """Hydra entry point: called by channel_generality.py → test_dt_v2 mode.
 
     Uses cfg.test_dt_v2.  Episode range defaults from env_ha.yaml "testing"
@@ -319,6 +318,8 @@ def test_dt_v2(cfg, path_context):
     from stable_baselines3.common.vec_env import DummyVecEnv
 
     tc = cfg.test_dt_v2
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", os.getcwd()))
     device = torch.device(str(tc.device))
     torch.set_num_threads(2)
 
@@ -353,7 +354,6 @@ def test_dt_v2(cfg, path_context):
     print(f"[test_dt_v2] model loaded from {tc.model_path}")
 
     env_cfg_raw = OmegaConf.load("conf/environment/env_ha.yaml")
-    pm = path_context
 
     all_results = {}
     for scen in list(tc.test_scenarios):
@@ -370,7 +370,12 @@ def test_dt_v2(cfg, path_context):
 
             def _make(s=env_settings, sd=seed):
                 def _init():
-                    return HierarchicalSlicingEnvV2(s, np.random.default_rng(sd), pm)
+                    return HierarchicalSlicingEnvV2(
+                        s,
+                        np.random.default_rng(sd),
+                        paths_cfg=paths_cfg,
+                        workdir=workdir,
+                    )
                 return _init
 
             env = DummyVecEnv([_make()])
@@ -431,7 +436,7 @@ def test_dt_v2(cfg, path_context):
     )
 
 
-def test_dt_v2_tiny(cfg, path_context):
+def test_dt_v2_tiny(cfg, paths_cfg=None, workdir=None):
     """Hydra entry point: called by channel_generality.py → test_dt_v2_tiny mode."""
     # Reuse the exact same evaluation pipeline; tiny mode is pure config routing.
     class _CfgProxy:
@@ -439,7 +444,9 @@ def test_dt_v2_tiny(cfg, path_context):
 
     cfg_proxy = _CfgProxy()
     cfg_proxy.test_dt_v2 = cfg.test_dt_v2_tiny
-    return test_dt_v2(cfg_proxy, path_context)
+    cfg_proxy.paths = cfg.get("paths", None)
+    cfg_proxy.workdir = cfg.get("workdir", None)
+    return test_dt_v2(cfg_proxy, paths_cfg=paths_cfg, workdir=workdir)
 
 
 if __name__ == "__main__":

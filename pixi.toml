@@ -16,7 +16,6 @@ train = "python simu.py"
 check-ray = "python check_env.py"
 tensorboard_show = "tensorboard --logdir /root/decision_transformer_slicing/outputs/runs/"
 sim = "python -c \"import sys, subprocess; subprocess.run(['python', 'main.py', f'simulation=channel_generality/{sys.argv[1]}'] + sys.argv[2:])\""
-xai = "python -c \"import sys, subprocess; subprocess.run(['python', 'main.py', f'simulation=explainable_ai/{sys.argv[1]}'] + sys.argv[2:])\""
 
 # --------------------------------------------------------------------
 # CONDA DEPENDENCIES

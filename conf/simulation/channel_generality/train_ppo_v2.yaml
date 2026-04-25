@@ -7,6 +7,7 @@ defaults:
 
 name: channel_generality
 mode: train_ppo_v2
+workdir: ${hydra:runtime.output_dir}
 
 train_ppo_v2:
   environment: ${environment}

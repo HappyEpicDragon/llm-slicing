@@ -239,10 +239,9 @@ class PlotConfig:
     SCENARIO_IDS = [5, 6, 7, 8, 9]
     N_SEEDS = 5
 
-    # Fig.6 默认 6 个主对比方法（CQL-Raw 作为 Tab.IV 消融变体单列）
+    # Fig.6 默认主对比方法
     MODELS_KEYS = [
         'ppo_multi',           # Multi-Scen. PPO [42]
-        'cql_expert',          # CQL [37]
         'ppo_lagrangian',      # Lagrangian PPO [20]
         'ppo_ha_weighted',     # PPO Discrete (Teacher)
         'dt_baseline',         # DT Baseline
@@ -251,7 +250,6 @@ class PlotConfig:
 
     MODELS_DISPLAY = [
         'Multi-Scen. PPO [42]',
-        'CQL [37]',
         'Lagrangian PPO [20]',
         'PPO Discrete (Teacher)',
         'DT-Baseline',
@@ -260,14 +258,13 @@ class PlotConfig:
 
     COLORS = [
         '#d62728',   # 红：Multi-Scen. PPO
-        '#9467bd',   # 紫：CQL
         '#e377c2',   # 粉：Lagrangian PPO
         '#ff7f0e',   # 橙：PPO Discrete
         '#2ca02c',   # 绿：DT Baseline
         '#00008B',   # 深蓝：IDT
     ]
 
-    HATCHES = ['//', 'xx', '||', '\\\\', '--', '']
+    HATCHES = ['//', '||', '\\\\', '--', '']
 
     JSON_DIR = "./data/channel_generality"
     SAVE_DIR = "./plots/bar_charts_final"
@@ -294,7 +291,6 @@ class PlotConfig:
 # Fig.6 专用视觉编码（优先级高于 plot_style 中的通用设置）
 FIG6_STYLE_OVERRIDES = {
     'ppo_multi':        {'color': '#d62728', 'hatch': '//',  'label': 'Multi-Scen. PPO [42]'},
-    'cql_expert':       {'color': '#9467bd', 'hatch': 'xx',  'label': 'CQL [37]'},
     'ppo_lagrangian':   {'color': '#e377c2', 'hatch': '||',  'label': 'Lagrangian PPO [20]'},
     'ppo_ha_weighted':  {'color': '#ff7f0e', 'hatch': '\\\\', 'label': 'PPO-Discrete (Teacher)'},
     'dt_baseline':      {'color': '#2ca02c', 'hatch': '--',  'label': 'DT-Baseline'},

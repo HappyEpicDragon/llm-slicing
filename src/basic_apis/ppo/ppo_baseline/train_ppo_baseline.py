@@ -4,8 +4,10 @@ from .ray_agent import RayAgent
 from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
 
 
-def train_ppo(cfg, path_context):
+def train_ppo(cfg, paths_cfg=None, workdir=None):
     asset_cfg = cfg.get("asset", None)
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", cfg.get("hydra_workdir", ".")))
     run_dir = None
     model_root = None
     use_asset = False
@@ -25,11 +27,12 @@ def train_ppo(cfg, path_context):
         else:
             ensure_dir(run_dir)
         cfg.hydra_workdir = run_dir
-        path_context.hydra_workdir = run_dir
+        workdir = run_dir
         print(f"[Asset] versioned run dir: {run_dir}")
 
     env_config = OmegaConf.to_container(cfg.environment, resolve=True)
-    env_config["path_context"] = path_context
+    env_config["paths_cfg"] = paths_cfg
+    env_config["workdir"] = workdir
     env_config['mode'] = cfg.env_updates.mode
     scenario_mode = cfg.env_updates.scenario_mode
     env_config['scenario_mode'] = scenario_mode
@@ -52,7 +55,8 @@ def train_ppo(cfg, path_context):
     agent = RayAgent(
         env_creator=env_creator,
         env_config=env_config,
-        path_context=path_context,
+        paths_cfg=paths_cfg,
+        workdir=workdir,
         **ray_config
     )
     agent.train()

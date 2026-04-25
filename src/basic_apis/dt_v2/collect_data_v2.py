@@ -54,6 +54,8 @@ def collect_scenario(
     seed,
     teacher_kind="single",
     teacher_id=None,
+    paths_cfg=None,
+    workdir=None,
 ):
     """Collect trajectories for one scenario using PPO teacher."""
     import torch
@@ -64,10 +66,9 @@ def collect_scenario(
     from stable_baselines3 import PPO
     from stable_baselines3.common.vec_env import DummyVecEnv
     from src.basic_apis.dt_v2.env_v2 import HierarchicalSlicingEnvV2
-    from src.basic_apis.network_slicing_business.path_context import PathContext
 
     env_cfg = OmegaConf.load("conf/environment/env_ha.yaml")
-    pm = PathContext(os.getcwd())
+    workdir = workdir or os.getcwd()
 
     cfg = env_cfg.env_settings.copy()
     cfg.mode = "training"
@@ -81,7 +82,12 @@ def collect_scenario(
 
     def _make(c=cfg, s=seed):
         def _init():
-            return HierarchicalSlicingEnvV2(c, np.random.default_rng(s), pm)
+            return HierarchicalSlicingEnvV2(
+                c,
+                np.random.default_rng(s),
+                paths_cfg=paths_cfg,
+                workdir=workdir,
+            )
         return _init
 
     env = DummyVecEnv([_make()])
@@ -322,9 +328,11 @@ def main():
     print(f"\nDataset ready: {args.output}/training/ ({n_files} files)")
 
 
-def collect(cfg, path_context):
+def collect(cfg, paths_cfg=None, workdir=None):
     """Hydra entry point: called by channel_generality.py → collect_data_v2 mode."""
     tc = cfg.collect_data_v2
+    paths_cfg = paths_cfg if paths_cfg is not None else cfg.get("paths", None)
+    workdir = workdir if workdir is not None else str(cfg.get("workdir", os.getcwd()))
     model_path = str(tc.model_path)
     output = str(tc.output)
     scenarios = list(tc.scenarios)
@@ -349,6 +357,7 @@ def collect(cfg, path_context):
                 collect_scenario,
                 scen, model_path, n_episodes, output,
                 epsilon, seed, teacher_kind, teacher_id,
+                paths_cfg, workdir,
             )
             futures[fut] = scen
 

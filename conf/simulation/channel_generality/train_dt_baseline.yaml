@@ -4,6 +4,7 @@ defaults:
 
 name: channel_generality
 mode: train_dt_baseline
+workdir: ${hydra:runtime.output_dir}
 
 train_dt_baseline:
   dataset_dir: data/channel_generality/dt_baseline_v2/dataset

@@ -9,6 +9,7 @@ defaults:
 
 name: channel_generality
 mode: plot_step_multiseed
+workdir: ${hydra:runtime.output_dir}
 
 plot_step_multiseed:
   # 默认展示 scenario=9（S_E）：最具挑战性的测试场景，用于展示时序稳定性对比

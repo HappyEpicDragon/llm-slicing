@@ -14,9 +14,3 @@ evo_model_root: ${paths.channel_generality}/ppo_ha_weighted_evo/models
 evo_proxy_root: ${paths.channel_generality}/ppo_ha_weighted_evo/proxy
 reevo_outputs: ${paths.project_root}/outputs/reevo
 evolution_curve: ${paths.channel_generality}/evolution_curve
-
-# Power Control 相关路径
-power_control: ${paths.data_root}/power_control
-power_control_models: ${paths.power_control}/models
-power_control_results: ${paths.power_control}/results
-power_control_channel: ${paths.power_control}/channel

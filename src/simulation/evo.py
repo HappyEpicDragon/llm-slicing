@@ -136,7 +136,6 @@ class EvoSimulator(BaseSimulation):
     # ------------------------------------------------------------------
     def eval_candidate(self):
         """加载指定 reward，在各场景上全量 PPO 训练，保存模型；可选跑 test_ppo_ha。"""
-        from src.basic_apis.network_slicing_business.path_context import create_path_context
         from src.basic_apis.ppo.ppo_ha_weighted.train import train
         from src.basic_apis.ppo.ppo_ha_weighted.test import test_ppo_ha
 
@@ -186,13 +185,13 @@ class EvoSimulator(BaseSimulation):
                         train_cfg_dict["environment"]["train_rl"]["total_timesteps"] = int(train_timesteps)
                 train_cfg_resolved = OmegaConf.create(train_cfg_dict)
 
-                path_context = create_path_context(
-                    cfg,
-                    hydra_workdir=tmp_dir,
-                    project_root=project_root,
+                metrics = train(
+                    train_cfg_resolved,
+                    paths_cfg=cfg.paths,
+                    workdir=tmp_dir,
+                    reward_fn=reward_fn,
+                    seed=seed,
                 )
-
-                metrics = train(train_cfg_resolved, path_context, reward_fn=reward_fn, seed=seed)
                 hp_r = float(metrics.get("hp_violation_rate", float("nan")))
                 nhp_r = float(metrics.get("nhp_violation_rate", float("nan")))
                 train_rows.append((sc, hp_r, nhp_r))
@@ -233,13 +232,11 @@ class EvoSimulator(BaseSimulation):
                             test_cfg_dict = OmegaConf.to_container(test_block, resolve=True)
                         test_cfg_resolved = OmegaConf.create(test_cfg_dict)
 
-                        pm_test = create_path_context(
-                            tcfg,
-                            hydra_workdir=test_tmp,
-                            project_root=project_root,
+                        test_out = test_ppo_ha(
+                            test_cfg_resolved,
+                            paths_cfg=tcfg.paths,
+                            workdir=test_tmp,
                         )
-
-                        test_out = test_ppo_ha(test_cfg_resolved, pm_test)
                         test_rows.append((sc, test_out))
                         print(f"[EvoSimulator] test scenario={sc} summary keys={list(test_out.keys())}")
                     finally:

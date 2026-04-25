@@ -14,4 +14,3 @@ inference_benchmark:
   save_dir: data/channel_generality/inference_benchmark
   ppo_ha_model_path: data/channel_generality/ppo_ha_weighted/models/scenario_0
   ppo_lagrangian_model_path: data/channel_generality/ppo_lagrangian_v2/models/scen_all_seed0
-  cql_model_path: data/channel_generality/cql/models/expert_seed0

@@ -5,9 +5,6 @@ from copy import deepcopy
 
 from .components import UEs, Association, Basestations, Channel, Metrics, Mobility, Slices, Traffic, Buffer
 
-from .path_context import PathContext
-
-
 @dataclass
 class BasestationConfig:
     """基站配置"""
@@ -198,12 +195,14 @@ class ComponentFactory:
          component_config: ComponentConfig,
          component_classes: ComponentClasses,
          np_random,
-         path_context: PathContext = None
+         paths_cfg=None,
+         workdir: str = None,
         ):
         self.component_config = component_config
         self.component_classes = component_classes
         self.np_random = np_random
-        self.path_context = path_context
+        self.paths_cfg = paths_cfg
+        self.workdir = workdir
 
     def create_scenario_components(self,
                                    episode_number: int,
@@ -260,7 +259,8 @@ class ComponentFactory:
             self.component_config.basestation_config.max_number_basestations,
             self.component_config.slice_config.max_number_slices,
             self.np_random,
-            path_context=self.path_context,
+            paths_cfg=self.paths_cfg,
+            workdir=self.workdir,
         )
 
     def _get_initial_associations(self, associations: Association,
@@ -314,7 +314,8 @@ class ComponentFactory:
         """创建信道组件"""
         return self.component_classes.ChannelClass(
             self.component_config.basestation_config.num_available_rbs,
-            path_context=self.path_context,
+            paths_cfg=self.paths_cfg,
+            workdir=self.workdir,
         )
 
     def _create_traffic(self) -> Traffic:
@@ -326,7 +327,7 @@ class ComponentFactory:
 
     def _create_metrics(self) -> Metrics:
         """创建指标组件"""
-        return Metrics(self.path_context)
+        return Metrics(paths_cfg=self.paths_cfg, workdir=self.workdir)
 
 
 

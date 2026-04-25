@@ -7,7 +7,6 @@ from hydra.utils import get_class
 
 from src.basic_apis.network_slicing_business.network_slicing_business_executor \
     import ComponentConfig, ComponentClasses, ComponentFactory, NetworkSlicingBusinessExecutor
-from src.basic_apis.network_slicing_business.path_context import PathContext
 # 导入必要的计算函数
 from src.basic_apis.ppo.utils import intent_drift_calc
 from src.basic_apis.codebook_utils import build_dirichlet_inter_quota_codebook
@@ -22,11 +21,12 @@ class EnvCompatibilityWrapper:
 class HierarchicalSlicingEnv(gym.Env):
     metadata = {'render_modes': ['human']}
 
-    def __init__(self, env_settings, np_random, path_context: PathContext):
+    def __init__(self, env_settings, np_random, paths_cfg=None, workdir: str = None):
         super().__init__()
         self.config = env_settings
         self.np_random = np_random
-        self.path_context = path_context
+        self.paths_cfg = getattr(paths_cfg, "paths_cfg", paths_cfg)
+        self.workdir = workdir if workdir is not None else getattr(paths_cfg, "hydra_workdir", None)
 
         # === 1. 业务组件初始化 ===
         self.mode = self.config.mode
@@ -40,7 +40,11 @@ class HierarchicalSlicingEnv(gym.Env):
             MobilityClass=get_class(self.config.components.mobility.class_path)
         )
         self.component_factory = ComponentFactory(
-            self.components_config, component_classes, self.np_random, self.path_context
+            self.components_config,
+            component_classes,
+            self.np_random,
+            paths_cfg=self.paths_cfg,
+            workdir=self.workdir,
         )
 
         self.components = None

@@ -164,37 +164,7 @@ def _benchmark_sb3_ppo(model_path: str, obs_dim: int, method_name: str,
         return {"method": method_name, "status": f"error: {e}"}
 
 
-def _benchmark_cql(model_path: str, obs_dim: int = 45, device: str = 'cpu') -> dict:
-    """测量 CQL 推理延迟（d3rlpy 模型）"""
-    try:
-        import d3rlpy
-        if not os.path.exists(model_path):
-            return {"method": "CQL [37]", "status": "model_not_found"}
-        params_path = os.path.join(os.path.dirname(model_path), 'params.json')
-        cql = d3rlpy.algos.CQL.from_json(params_path)
-        cql.load_model(model_path)
-
-        dummy_obs = np.zeros((1, obs_dim), dtype=np.float32)
-
-        def infer():
-            cql.predict(dummy_obs)
-
-        mean_ms, std_ms = benchmark_model(infer, None, n_warmup=100, n_runs=1000, device=device)
-        size_mb = get_model_size_mb(model_path)
-
-        return {
-            "method": "CQL [37]",
-            "params": "N/A",
-            "size_mb": round(size_mb, 2),
-            "inference_mean_ms": round(mean_ms, 4),
-            "inference_std_ms": round(std_ms, 4),
-            "meets_1ms_tti": mean_ms < 1.0,
-        }
-    except Exception as e:
-        return {"method": "CQL [37]", "status": f"error: {e}"}
-
-
-def inference_benchmark(cfg: DictConfig, path_context):
+def inference_benchmark(cfg: DictConfig):
     """推理时间基准测试主入口（channel_generality.py 调用）"""
     bench_cfg = cfg.get('inference_benchmark', cfg)
     device = str(bench_cfg.get('device', 'cpu'))
@@ -219,11 +189,6 @@ def inference_benchmark(cfg: DictConfig, path_context):
     lag_path = str(bench_cfg.get('ppo_lagrangian_model_path', ''))
     if lag_path:
         results.append(_benchmark_sb3_ppo(lag_path, 45, 'Lagrangian PPO [20]', device))
-
-    # CQL（d3rlpy）
-    cql_path = str(bench_cfg.get('cql_model_path', ''))
-    if cql_path:
-        results.append(_benchmark_cql(cql_path, obs_dim=45, device=device))
 
     # 打印结果表
     print(f"\n{'Method':<28} {'Params':>10} {'Size(MB)':>10} {'Mean(ms)':>10} {'Std(ms)':>9} {'<1ms TTI':>10}")

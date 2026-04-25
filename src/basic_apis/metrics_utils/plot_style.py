@@ -14,14 +14,6 @@ METHOD_STYLES = {
         'color': '#d62728', 'ls': '-',   'marker': 'o', 'hatch': '//',
         'label': 'PPO-MLP [42]',
     },
-    'cql_expert': {
-        'color': '#9467bd', 'ls': '-',   'marker': 'p', 'hatch': 'xx',
-        'label': 'CQL [37]',
-    },
-    'cql_raw': {
-        'color': '#c5b0d5', 'ls': '--',  'marker': 'p', 'hatch': 'xx',
-        'label': 'CQL-Raw [37]',
-    },
     'ppo_lagrangian': {
         'color': '#e377c2', 'ls': '-',   'marker': '^', 'hatch': '||',
         'label': 'Lagrangian PPO [20]',
@@ -72,8 +64,6 @@ METHOD_STYLES = {
 # 默认方法顺序（用于表格/柱状图统一排序）
 METHOD_ORDER = [
     "ppo_baseline",
-    "cql_expert",
-    "cql_raw",
     "ppo_lagrangian",
     "transfer_ppo",
     "transfer_ppo_0shot",

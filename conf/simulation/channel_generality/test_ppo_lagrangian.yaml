@@ -6,6 +6,7 @@ defaults:
 
 name: channel_generality
 mode: test_ppo_lagrangian
+workdir: ${hydra:runtime.output_dir}
 
 test_ppo_lagrangian:
   # 模型根目录（EnvV2，对应 train_ppo_lagrangian 默认 save_path）

@@ -15,11 +15,10 @@ plot_hist:
   output_dir: outputs/figures/channel_generality/cross_scenario
 
   # 可按需覆盖方法顺序
-  # 默认保留 6 个主对比方法；CQL-Raw 作为 Tab.IV 消融变体单独报告
+  # 默认保留主对比方法
   # transfer_ppo_0shot 仅当你已准备 5 场景 zero-shot 资产时再手动加入
   model_keys:
     - ppo_multi
-    - cql_expert
     - ppo_lagrangian
     - ppo_ha_weighted
     - dt_baseline
