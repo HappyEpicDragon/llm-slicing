@@ -9,7 +9,7 @@ from hydra.utils import get_class
 
 
 from src.basic_apis.network_slicing_business.network_slicing_business_executor import ComponentConfig, Components, ComponentClasses, ComponentFactory, NetworkSlicingBusinessExecutor
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.ppo.utils import intent_drift_calc
 
 
@@ -104,7 +104,7 @@ class PSJRAEnv(gym.Env):
             self,
             env_config,
             np_random,
-            path_manager
+            path_context
     ):
         """
         初始化环境
@@ -151,7 +151,7 @@ class PSJRAEnv(gym.Env):
             component_config = self.component_config,
             component_classes = component_classes,
             np_random = self.np_random,
-            path_manager=path_manager,
+            path_context=path_context,
         )
 
         self.business_executor = None

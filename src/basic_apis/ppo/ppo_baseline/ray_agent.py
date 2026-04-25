@@ -45,7 +45,7 @@ from ray.rllib.utils.annotations import override
 from ray.rllib.utils.typing import ModelConfigDict, TensorType
 
 # 本地模块
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 
 
 class TorchActionMaskModel(TorchModelV2, nn.Module):
@@ -200,7 +200,7 @@ class RayAgent:
         hyper_opt_enable: bool = False,
         shared_policies: bool = True,
         number_rollout_workers: int = 0,
-        path_manager: PathManager = None,
+        path_context: PathContext = None,
     ):
         if not ray.is_initialized():
             ray.init(local_mode=debug_mode, num_cpus=128, num_gpus=4)
@@ -217,8 +217,8 @@ class RayAgent:
         self.env_config = env_config
         self.agent = None
         self.enable_masks = enable_masks
-        self.path_manager = path_manager
-        self.read_checkpoint = path_manager.get_read_checkpoint_path()
+        self.path_context = path_context
+        self.read_checkpoint = path_context.get_read_checkpoint_path()
         self.algo = None
         self.steps_per_episode = 1000
         self.number_rollout_workers = number_rollout_workers

@@ -12,7 +12,7 @@ from pathlib import Path
 from src.basic_apis.dt_utils.dataset import HierarchicalDTDataset
 from src.basic_apis.dt_utils.model_ha_dt import HierarchicalStateEncoder, build_decision_model
 from src.basic_apis.dt_utils.action_dims import resolve_action_dims_from_env_cfg
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.ppo.ppo_ha_weighted.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.general_utils import pad_stack_tensor
 from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
@@ -74,7 +74,7 @@ def _normalize_obs(raw, feat_key, obs_stats):
     return np.clip(normed, -5.0, 5.0).astype(np.float32)
 
 
-def make_env(cfg, path_manager, seed=0):
+def make_env(cfg, path_context, seed=0):
     """
     环境工厂函数，用于闭环评估
     """
@@ -94,7 +94,7 @@ def make_env(cfg, path_manager, seed=0):
             target_cfg.active_scenario_list = [0]
 
         # 初始化环境
-        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed), path_manager)
+        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed), path_context)
         return env
 
     return _init
@@ -252,7 +252,7 @@ def evaluate_in_env(model, env_fn, context_len, target_rtg, rtg_scale, device, a
     }
 
 
-def train(cfg: DictConfig, path_manager: PathManager):
+def train(cfg: DictConfig, path_context: PathContext):
     """
     DT 训练主入口
     """
@@ -513,7 +513,7 @@ def train(cfg: DictConfig, path_manager: PathManager):
             ep_results = []
 
             for i in range(dt_cfg.evaluation.n_eval_episodes):
-                env_fn = make_env(cfg.environment, path_manager, seed=10000 + epoch + i)
+                env_fn = make_env(cfg.environment, path_context, seed=10000 + epoch + i)
                 result = evaluate_in_env(
                     model, env_fn,
                     context_len=dt_cfg.model.context_len,
@@ -573,7 +573,7 @@ if __name__ == "__main__":
     if os.path.exists(config_path):
         cfg = OmegaConf.load(config_path)
         work_dir = os.getcwd()
-        pm = PathManager(work_dir)
+        pm = PathContext(work_dir)
         train(cfg, pm)
     else:
         print(f"❌ Config file {config_path} not found.")

@@ -19,7 +19,7 @@ from stable_baselines3.common.callbacks import (
 # Local Imports
 from src.basic_apis.ppo.ppo_ha.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.ppo.ppo_ha.agent_hierarchical import HierarchicalSmartPolicy
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 
 
 # =========================================================================
@@ -216,11 +216,11 @@ class HierarchicalDiagnosisCallback(BaseCallback):
 # =========================================================================
 # 2. 核心训练接口
 # =========================================================================
-def make_env(cfg, path_manager, rank=0, seed=0):
+def make_env(cfg, path_context, rank=0, seed=0):
     def _init():
         env_config = cfg.env_settings if hasattr(cfg, 'env_settings') else cfg
         if 'env_settings' in cfg: env_config = cfg.env_settings
-        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_manager)
+        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_context)
         if hasattr(cfg, 'train_rl') and hasattr(cfg.train_rl, 'reward_weights'):
             env.reward_weights = cfg.train_rl.reward_weights
         env = Monitor(env)
@@ -291,7 +291,7 @@ class EntropyScheduleCallback(BaseCallback):
         return True
 
 
-def train(cfg: DictConfig, path_manager: PathManager):
+def train(cfg: DictConfig, path_context: PathContext):
     env_config = cfg.environment
     seed = env_config.train_rl.seed
 
@@ -305,14 +305,14 @@ def train(cfg: DictConfig, path_manager: PathManager):
         mode].active_scenario_list
 
     # 创建环境
-    env = DummyVecEnv([make_env(env_config, path_manager, rank=0, seed=seed)])
+    env = DummyVecEnv([make_env(env_config, path_context, rank=0, seed=seed)])
 
     eval_env_config = env_config.copy()
     eval_env_config.env_settings.mode = 'evaluating'
     eval_env_config.env_settings[scenario_mode]['evaluating'].active_scenario_list = cfg.env_updates[scenario_mode][
         'evaluating'].active_scenario_list
 
-    eval_env = DummyVecEnv([make_env(eval_env_config, path_manager, rank=0, seed=seed + 1000)])
+    eval_env = DummyVecEnv([make_env(eval_env_config, path_context, rank=0, seed=seed + 1000)])
     rl_cfg = cfg.environment.train_rl
 
     net_arch = dict(pi=OmegaConf.to_container(rl_cfg.network.pi_head),
@@ -390,7 +390,7 @@ if __name__ == "__main__":
     if os.path.exists(config_path):
         cfg = OmegaConf.load(config_path);
         work_dir = os.getcwd();
-        pm = PathManager(work_dir)
+        pm = PathContext(work_dir)
         train(cfg, pm)
     else:
         print(f"❌ Config file {config_path} not found.")

@@ -1,0 +1,6 @@
+_target_: src.reevo.utils.llm_client.openai.OpenAIClient
+
+model: deepseek/deepseek-v4-flash  # DeepSeek V3 on OpenRouter; 免费备选: z-ai/glm-4.5-air:free
+temperature: 1.0
+api_key: ${oc.env:OPENROUTER_API_KEY,null}
+base_url: https://openrouter.ai/api/v1

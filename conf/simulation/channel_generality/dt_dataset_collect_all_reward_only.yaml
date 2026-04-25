@@ -11,7 +11,7 @@ mode: dt_dataset_collect_all
 workdir: ${hydra:runtime.output_dir}
 
 dt_dataset_collect_all:
-  output_path: /root/decision_transformer_slicing/data/channel_generality/dt_reward_only/dataset
+  output_path: ${paths.channel_generality}/dt_reward_only/dataset
   episodes_per_scenario_training: 60
   episodes_per_scenario_evaluating: 20
   runs_per_episode: 40
@@ -30,10 +30,10 @@ dt_dataset_collect_all:
   environment: ${environment}
 
   MODEL_ZOO:
-    0: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_0/latest/best_model/best_model.zip
-    1: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_1/latest/best_model/best_model.zip
-    2: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_2/latest/best_model/best_model.zip
-    3: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_3/latest/best_model/best_model.zip
-    4: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_4/latest/best_model/best_model.zip
+    0: ${paths.channel_generality}/ppo_ha_weighted/models/scenario_0/latest/best_model/best_model.zip
+    1: ${paths.channel_generality}/ppo_ha_weighted/models/scenario_1/latest/best_model/best_model.zip
+    2: ${paths.channel_generality}/ppo_ha_weighted/models/scenario_2/latest/best_model/best_model.zip
+    3: ${paths.channel_generality}/ppo_ha_weighted/models/scenario_3/latest/best_model/best_model.zip
+    4: ${paths.channel_generality}/ppo_ha_weighted/models/scenario_4/latest/best_model/best_model.zip
 
   CROSS_SCENARIO_IDS: [0, 1, 2, 3, 4]

@@ -9,11 +9,11 @@ from omegaconf import OmegaConf
 # === Local Imports ===
 from src.basic_apis.ppo.ppo_ha.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.ppo.ppo_ha.agent_hierarchical import HierarchicalSmartPolicy
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.physics_probe import PhysicsProbe, SLAProbe
 
 
-def make_env(cfg, path_manager, rank=0, seed=0):
+def make_env(cfg, path_context, rank=0, seed=0):
     """H+A 环境工厂函数"""
 
     def _init():
@@ -21,13 +21,13 @@ def make_env(cfg, path_manager, rank=0, seed=0):
         if 'env_settings' in cfg:
             env_config = cfg.env_settings
 
-        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_manager)
+        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_context)
         return env
 
     return _init
 
 
-def test_ppo_ha(cfg, path_manager):
+def test_ppo_ha(cfg, path_context):
     """H+A 测试入口"""
     environment_cfg = cfg.environment
     env_updates = cfg.env_updates
@@ -53,10 +53,10 @@ def test_ppo_ha(cfg, path_manager):
             # model_path = "/root/decision_transformer_slicing/models_hierarchical/ppo_ha_cont_19200_steps.zip"
 
     print(f"Loading Model from: {model_path}")
-    test(model_path, environment_cfg, path_manager)
+    test(model_path, environment_cfg, path_context)
 
 
-def test(model_path, cfg, path_manager):
+def test(model_path, cfg, path_context):
     # 1. 环境设置
     os.environ["OMP_NUM_THREADS"] = "1"
     torch.set_num_threads(1)
@@ -71,7 +71,7 @@ def test(model_path, cfg, path_manager):
 
     # 创建环境
     seed = 42
-    env = DummyVecEnv([make_env(cfg, path_manager, rank=0, seed=seed)])
+    env = DummyVecEnv([make_env(cfg, path_context, rank=0, seed=seed)])
 
     # 2. 加载模型
     try:
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     if os.path.exists(config_path):
         cfg = OmegaConf.load(config_path)
         work_dir = os.getcwd()
-        pm = PathManager(work_dir)
+        pm = PathContext(work_dir)
 
         cfg.env_settings.mode = 'testing'
         if 'testing' not in cfg.env_settings.inside:

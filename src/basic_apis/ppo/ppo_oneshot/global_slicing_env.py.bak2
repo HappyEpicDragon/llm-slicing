@@ -7,7 +7,7 @@ from hydra.utils import get_class
 
 from src.basic_apis.network_slicing_business.network_slicing_business_executor \
     import ComponentConfig, ComponentClasses, ComponentFactory, NetworkSlicingBusinessExecutor
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.ppo.utils import calculate_reward_no_mask, intent_drift_calc
 
 from src.diagnostic_utils.diagnostic_decision_tracking import DecisionTracker
@@ -17,11 +17,11 @@ from src.diagnostic_utils.diagnostic_reward_action_causal import RewardActionAna
 class GlobalSlicingEnv(gym.Env):
     metadata = {'render_modes': ['human']}
 
-    def __init__(self, env_settings, np_random, path_manager: PathManager):
+    def __init__(self, env_settings, np_random, path_context: PathContext):
         super().__init__()
         self.config = env_settings
         self.np_random = np_random
-        self.path_manager = path_manager
+        self.path_context = path_context
 
         # === 1. 初始化业务组件 ===
         self.mode = self.config.mode
@@ -34,7 +34,7 @@ class GlobalSlicingEnv(gym.Env):
             MobilityClass=get_class(self.config.components.mobility.class_path)
         )
         self.component_factory = ComponentFactory(
-            self.components_config, component_classes, self.np_random, self.path_manager
+            self.components_config, component_classes, self.np_random, self.path_context
         )
         self.business_executor: Optional[NetworkSlicingBusinessExecutor] = None
         self.components = None

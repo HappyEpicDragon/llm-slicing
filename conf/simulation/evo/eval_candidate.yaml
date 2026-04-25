@@ -1,0 +1,17 @@
+# @package _global_
+
+name: evo
+mode: eval_candidate
+workdir: ${hydra:runtime.output_dir}
+
+eval_candidate:
+  reward_fn_path: ???   # 必填：reward function 文件路径（.txt，包含 ```python ... ```）
+  scenarios: [0]        # 训练+测试的场景列表
+  seed: 42
+  model_save_root: ${paths.channel_generality}/ppo_ha_weighted_evolved/models
+  # 测试配置
+  run_test: true        # 训练完是否自动测试
+  test_seeds: [0, 1, 2, 3, 4]
+  test_save_root: ${paths.channel_generality}/ppo_ha_weighted_evolved
+
+  train_timesteps: null   # 若非 null，覆盖 train_ppo_ha_weighted.environment.train_rl.total_timesteps

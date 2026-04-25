@@ -1,0 +1,29 @@
+# @package _global_
+# Test trained PPO agent on K-user interference channel
+# Usage: python main.py simulation=power_control/test_ppo_discrete
+
+defaults:
+  - /environment: power_control_env
+
+name: power_control
+mode: test_ppo_discrete
+workdir: ${hydra:runtime.output_dir}
+
+# Test environment (can use different K for OOD evaluation)
+environment:
+  K: 10
+  N: 10
+  episode_length: 1000
+  seed: 1042  # Different seed for test
+
+test_ppo_discrete:
+  environment: ${environment}
+
+  testing:
+    model_path: ${paths.power_control_models}/latest/ppo_power_control_K10
+    n_eval_episodes: 50
+    seed: 1042
+    verbose: 1
+
+  output:
+    results_path: ${paths.power_control_results}/test_K10

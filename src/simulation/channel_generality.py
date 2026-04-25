@@ -2,7 +2,7 @@ from .base_simu.simulation_factory import SimulationFactory
 from .base_simu.base_simulation import BaseSimulation
 from hydra.core.hydra_config import HydraConfig
 
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import create_path_context
 from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
 
 
@@ -10,9 +10,9 @@ from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_sy
 class ChannelGeneralitySimulator(BaseSimulation):
     def __init__(self, cfg):
         super().__init__(cfg)
-        # 将 path_manager 作为实例变量
+        # 将 path_context 作为实例变量
         hydra_run_output_dir = HydraConfig.get().runtime.output_dir
-        self.path_manager = PathManager(hydra_run_output_dir)
+        self.path_context = create_path_context(self.cfg, hydra_workdir=hydra_run_output_dir)
 
     def run(self):
         print("Current Simulation: Channel Generality")
@@ -183,22 +183,22 @@ class ChannelGeneralitySimulator(BaseSimulation):
     def train_ppo_baseline(self):
         """训练基线 PPO"""
         from src.basic_apis.ppo.ppo_baseline.train_ppo_baseline import train_ppo
-        train_ppo(self.cfg.train_ppo_baseline, self.path_manager)
+        train_ppo(self.cfg.train_ppo_baseline, self.path_context)
 
     def train_lstm_ppo(self):
         """训练 LSTM PPO"""
         from src.basic_apis.ppo.ppo_lstm.train_recurrent_ppo import train as train_lstm_sb3
-        train_lstm_sb3(self.cfg.train_ppo_lstm, path_manager=self.path_manager)
+        train_lstm_sb3(self.cfg.train_ppo_lstm, path_context=self.path_context)
 
     def test_ppo_baseline(self):
         from src.basic_apis.ppo.ppo_baseline.test_ppo_baseline import test_ppo_baseline
-        test_ppo_baseline(self.cfg.test_ppo_baseline, self.path_manager)
+        test_ppo_baseline(self.cfg.test_ppo_baseline, self.path_context)
 
     def test_ppo_lstm(self):
         """测试 LSTM PPO"""
         from src.basic_apis.ppo.ppo_lstm.test_lstm import test_ppo_lstm as test
         test(self.cfg.test_ppo_lstm,
-             self.path_manager)
+             self.path_context)
 
     def calculate_metric_value(self):
         from src.basic_apis.metrics_utils.metric_value import calculate
@@ -210,71 +210,71 @@ class ChannelGeneralitySimulator(BaseSimulation):
 
     def dt_collect_dataset(self):
         from src.basic_apis.dt_utils.dataset_collect import collect
-        collect(self.cfg.dt_dataset_collect, self.path_manager)
+        collect(self.cfg.dt_dataset_collect, self.path_context)
 
     def dt_collect_dataset_all(self):
         from src.basic_apis.dt_utils.dataset_collect_all import collect
-        collect(self.cfg.dt_dataset_collect_all, self.path_manager)
+        collect(self.cfg.dt_dataset_collect_all, self.path_context)
 
     def dt_collect_dataset_baseline(self):
         from src.basic_apis.dt_baseline.dataset_collect_baseline import collect
-        collect(self.cfg.dt_dataset_collect_baseline, self.path_manager)
+        collect(self.cfg.dt_dataset_collect_baseline, self.path_context)
 
     def train_ppo_lstm_across_scenario(self):
         from src.basic_apis.ppo.ppo_lstm.train_recurrent_ppo import train as train_lstm_sb3
-        train_lstm_sb3(self.cfg.train_ppo_lstm_across_scenario, path_manager=self.path_manager)
+        train_lstm_sb3(self.cfg.train_ppo_lstm_across_scenario, path_context=self.path_context)
 
     def train_ppo_baseline_across_scenario(self):
         from src.basic_apis.ppo.ppo_baseline.train_ppo_baseline import train_ppo
-        train_ppo(self.cfg.train_ppo_baseline_across_scenario, path_manager=self.path_manager)
+        train_ppo(self.cfg.train_ppo_baseline_across_scenario, path_context=self.path_context)
 
     def dt_training(self):
         from src.basic_apis.dt_utils.train import train
-        train(self.cfg.dt_training, self.path_manager)
+        train(self.cfg.dt_training, self.path_context)
 
     def dt_testing(self):
         from src.basic_apis.dt_utils.test import test_dt_process
-        test_dt_process(self.cfg.dt_testing, self.path_manager)
+        test_dt_process(self.cfg.dt_testing, self.path_context)
 
     def train_dt_baseline(self):
         from src.basic_apis.dt_v2.train_dt_baseline import train_hydra
-        train_hydra(self.cfg, self.path_manager)
+        train_hydra(self.cfg, self.path_context)
 
     def test_dt_baseline(self):
         from src.basic_apis.dt_v2.test_dt_baseline import test_dt_baseline
-        test_dt_baseline(self.cfg, self.path_manager)
+        test_dt_baseline(self.cfg, self.path_context)
 
     def train_ppo_oneshot(self):
         from src.basic_apis.ppo.ppo_oneshot.train import train
-        train(self.cfg.train_ppo_oneshot, self.path_manager)
+        train(self.cfg.train_ppo_oneshot, self.path_context)
 
     def test_ppo_oneshot(self):
         from src.basic_apis.ppo.ppo_oneshot.test import test_ppo_oneshot
-        test_ppo_oneshot(self.cfg.test_ppo_oneshot, self.path_manager)
+        test_ppo_oneshot(self.cfg.test_ppo_oneshot, self.path_context)
 
     def train_ppo_ha(self):
         from src.basic_apis.ppo.ppo_ha.train import train
-        train(self.cfg.train_ppo_ha, self.path_manager)
+        train(self.cfg.train_ppo_ha, self.path_context)
 
     def test_ppo_ha(self):
         from src.basic_apis.ppo.ppo_ha.test import test_ppo_ha
-        test_ppo_ha(self.cfg.test_ppo_ha, self.path_manager)
+        test_ppo_ha(self.cfg.test_ppo_ha, self.path_context)
 
     def train_ppo_ha_weighted(self):
         from src.basic_apis.ppo.ppo_ha_weighted.train import train
-        train(self.cfg.train_ppo_ha_weighted, self.path_manager)
+        train(self.cfg.train_ppo_ha_weighted, self.path_context)
 
     def test_ppo_ha_weighted(self):
         from src.basic_apis.ppo.ppo_ha_weighted.test import test_ppo_ha
-        test_ppo_ha(self.cfg.test_ppo_ha_weighted, self.path_manager)
+        test_ppo_ha(self.cfg.test_ppo_ha_weighted, self.path_context)
 
     def test_ppo_baseline_finetune(self):
         from src.basic_apis.ppo.ppo_baseline.test_ppo_baseline import test_ppo_baseline_finetune
-        test_ppo_baseline_finetune(self.cfg.test_ppo_baseline_finetune, self.path_manager)
+        test_ppo_baseline_finetune(self.cfg.test_ppo_baseline_finetune, self.path_context)
 
     def test_ppo_baseline_multi(self):
         from src.basic_apis.ppo.ppo_baseline.test_ppo_baseline import test_ppo_baseline_multi
-        test_ppo_baseline_multi(self.cfg.test_ppo_baseline_multi, self.path_manager)
+        test_ppo_baseline_multi(self.cfg.test_ppo_baseline_multi, self.path_context)
 
     # def plot_hist(self):
     #     from src.basic_apis.metrics_utils.plot_utils import plot_hist
@@ -407,22 +407,22 @@ class ChannelGeneralitySimulator(BaseSimulation):
     def train_ppo_lagrangian(self):
         """训练 Lagrangian PPO Baseline（B2）— EnvV2 版"""
         from src.basic_apis.ppo.ppo_lagrangian.train import train_ppo_lagrangian
-        train_ppo_lagrangian(self.cfg, self.path_manager)
+        train_ppo_lagrangian(self.cfg, self.path_context)
 
     def test_ppo_lagrangian(self):
         """测试 Lagrangian PPO Baseline（B2）— EnvV2 版"""
         from src.basic_apis.ppo.ppo_lagrangian.test import test_ppo_lagrangian
-        test_ppo_lagrangian(self.cfg, self.path_manager)
+        test_ppo_lagrangian(self.cfg, self.path_context)
 
     def train_ppo_lagrangian_baseline(self):
         """训练 PPO-Lagrangian Baseline — 与 ppo-baseline/dt-baseline 相同的 CommunicationEnv 环境"""
         from src.basic_apis.ppo.ppo_lagrangian.train_baseline import train_ppo_lagrangian_baseline
-        train_ppo_lagrangian_baseline(self.cfg, self.path_manager)
+        train_ppo_lagrangian_baseline(self.cfg, self.path_context)
 
     def test_ppo_lagrangian_baseline(self):
         """测试 PPO-Lagrangian Baseline — s5–s9，ep 0–99，5 个种子"""
         from src.basic_apis.ppo.ppo_lagrangian.test_baseline import test_ppo_lagrangian_baseline
-        test_ppo_lagrangian_baseline(self.cfg, self.path_manager)
+        test_ppo_lagrangian_baseline(self.cfg, self.path_context)
 
     # === 新绘图脚本 (M12) ===
 
@@ -441,14 +441,14 @@ class ChannelGeneralitySimulator(BaseSimulation):
     def inference_benchmark(self):
         """推理时间基准测试（E1 实验）"""
         from src.basic_apis.metrics_utils.inference_benchmark import inference_benchmark
-        inference_benchmark(self.cfg, self.path_manager)
+        inference_benchmark(self.cfg, self.path_context)
 
     # === 综合结果表生成 (M14) ===
 
     def generate_results_table(self):
         """生成综合结果 LaTeX 表格（Tab.III / Tab.IV）"""
         from src.basic_apis.metrics_utils.generate_results_table import generate_results_table
-        generate_results_table(self.cfg, self.path_manager)
+        generate_results_table(self.cfg, self.path_context)
 
     # === 多 seed 对比绘图 ===
 
@@ -473,7 +473,7 @@ class ChannelGeneralitySimulator(BaseSimulation):
         使用 SubprocVecEnv + episode 偏移，n_envs=12 最优。
         """
         from src.basic_apis.dt_v2.train_ppo_v2 import train
-        train(self.cfg, self.path_manager)
+        train(self.cfg, self.path_context)
 
     def test_ppo_v2(self):
         """评测 PPO-v2 模型，使用 held-out ep 60-79（testing 模式）。"""
@@ -482,42 +482,42 @@ class ChannelGeneralitySimulator(BaseSimulation):
         if scripts_dir not in sys.path:
             sys.path.insert(0, scripts_dir)
         from eval_ppo_v2_per_scenario_expert import test_ppo_v2
-        test_ppo_v2(self.cfg, self.path_manager)
+        test_ppo_v2(self.cfg, self.path_context)
 
     def collect_data_v2(self):
         """用 PPO-v2 teacher 采集 DT 训练数据集（训练 ep 0-59）。"""
         from src.basic_apis.dt_v2.collect_data_v2 import collect
-        collect(self.cfg, self.path_manager)
+        collect(self.cfg, self.path_context)
 
     def train_dt_v2(self):
         """在 PPO-v2 teacher 轨迹上训练 Decision Transformer-v2。"""
         from src.basic_apis.dt_v2.train_dt_v2 import train_hydra
-        train_hydra(self.cfg, self.path_manager)
+        train_hydra(self.cfg, self.path_context)
 
     def test_dt_v2(self):
         """评测 DT-v2，使用 held-out ep 60-79（testing 模式）。"""
         from src.basic_apis.dt_v2.test_v2 import test_dt_v2
-        test_dt_v2(self.cfg, self.path_manager)
+        test_dt_v2(self.cfg, self.path_context)
 
     def train_dt_v2_tiny(self):
         """训练 DT-v2 tiny 变体（slice_attn + 小主干/小编码器）。"""
         from src.basic_apis.dt_v2.train_dt_v2 import train_hydra_tiny
-        train_hydra_tiny(self.cfg, self.path_manager)
+        train_hydra_tiny(self.cfg, self.path_context)
 
     def test_dt_v2_tiny(self):
         """评测 DT-v2 tiny 变体，使用 held-out ep 60-79（testing 模式）。"""
         from src.basic_apis.dt_v2.test_v2 import test_dt_v2_tiny
-        test_dt_v2_tiny(self.cfg, self.path_manager)
+        test_dt_v2_tiny(self.cfg, self.path_context)
 
     # === CQL-v3：多头离散 Q 网络 ===
 
     def train_cql_v3(self):
         """训练 CQL-v3：多头离散 Q 网络，直接在 MultiDiscrete 动作空间上训练。"""
         from src.basic_apis.cql_baseline.train_cql_discrete import train
-        train(self.cfg, self.path_manager)
+        train(self.cfg, self.path_context)
 
     def test_cql_v3(self):
         """评测 CQL-v3：使用 HierarchicalSlicingEnvV2，原始离散动作 argmax。"""
         from src.basic_apis.cql_baseline.train_cql_discrete import test
-        test(self.cfg, self.path_manager)
+        test(self.cfg, self.path_context)
 

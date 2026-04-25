@@ -91,7 +91,7 @@ def _load_lagrangian_for_inference(model_path: str, obs_dim: int, device: str = 
     return instance
 
 
-def test_ppo_lagrangian(cfg: DictConfig, path_manager):
+def test_ppo_lagrangian(cfg: DictConfig, path_context):
     """Lagrangian PPO 测试主函数"""
     test_cfg = cfg.test_ppo_lagrangian
 
@@ -130,7 +130,7 @@ def test_ppo_lagrangian(cfg: DictConfig, path_manager):
             env_settings[scenario_mode]['testing']['active_scenario_list'] = [scenario_id]
 
             from omegaconf import OmegaConf as OC
-            env = HierarchicalSlicingEnvV2(OC.create(env_settings), np.random.default_rng(seed), path_manager)
+            env = HierarchicalSlicingEnvV2(OC.create(env_settings), np.random.default_rng(seed), path_context)
 
             # 加载模型：
             # - model_seed 设定时：使用单个训练模型，复用到所有 test_seeds

@@ -1,0 +1,22 @@
+project_root: ${oc.env:LLM_SLICING_ROOT,/root/llm_slicing}
+data_root: ${paths.project_root}/data
+static_root: ${paths.data_root}/static
+association_root: ${paths.static_root}/association
+channel_root: ${paths.static_root}/channel
+channel_file_name: target_cell_power.mat
+channel_npz_name: target_cell_power.npz
+runtime_metrics_subdir: ""
+ray_results_dirname: ray_results
+channel_generality: ${paths.data_root}/channel_generality
+
+# 演化搜索相关路径
+evo_model_root: ${paths.channel_generality}/ppo_ha_weighted_evo/models
+evo_proxy_root: ${paths.channel_generality}/ppo_ha_weighted_evo/proxy
+reevo_outputs: ${paths.project_root}/outputs/reevo
+evolution_curve: ${paths.channel_generality}/evolution_curve
+
+# Power Control 相关路径
+power_control: ${paths.data_root}/power_control
+power_control_models: ${paths.power_control}/models
+power_control_results: ${paths.power_control}/results
+power_control_channel: ${paths.power_control}/channel

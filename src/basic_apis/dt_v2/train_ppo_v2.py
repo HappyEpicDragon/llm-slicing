@@ -23,10 +23,10 @@ from src.basic_apis.ppo.ppo_ha_weighted.agent_hierarchical import (
     HierarchicalPooledAttentionPolicy,
     HierarchicalSliceAttnPolicy,
 )
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 
 
-def make_env_v2(env_settings, path_manager, rank=0, seed=0, episode_offset=0):
+def make_env_v2(env_settings, path_context, rank=0, seed=0, episode_offset=0):
     """Create a single EnvV2 factory.
 
     episode_offset staggers each subprocess's starting episode so that within
@@ -35,7 +35,7 @@ def make_env_v2(env_settings, path_manager, rank=0, seed=0, episode_offset=0):
     cyclically over [init_ep, max_ep) as usual.
     """
     def _init():
-        env = HierarchicalSlicingEnvV2(env_settings, np.random.default_rng(seed + rank), path_manager)
+        env = HierarchicalSlicingEnvV2(env_settings, np.random.default_rng(seed + rank), path_context)
         if episode_offset > 0:
             n_eps = env.max_ep - env.init_ep
             env.internal_episode_ptr = env.init_ep + (episode_offset % n_eps)
@@ -56,7 +56,7 @@ def train_v2(
     n_envs=1,
 ):
     env_cfg = OmegaConf.load("conf/environment/env_ha.yaml")
-    pm = PathManager(os.getcwd())
+    pm = PathContext(os.getcwd())
 
     # Training env
     train_settings = env_cfg.env_settings.copy()
@@ -156,11 +156,11 @@ def train_v2(
     eval_env.close()
 
 
-def train(cfg, path_manager):
+def train(cfg, path_context):
     """Hydra entry point: called by channel_generality.py → train_ppo_v2 mode.
 
     Reads cfg.train_ppo_v2 and delegates to train_v2().
-    path_manager is accepted for API consistency but unused (train_v2 creates
+    path_context is accepted for API consistency but unused (train_v2 creates
     its own from os.getcwd()).
     """
     tc = cfg.train_ppo_v2

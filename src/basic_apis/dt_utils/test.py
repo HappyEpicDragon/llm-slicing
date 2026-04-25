@@ -10,17 +10,17 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 # === Local Imports ===
 from src.basic_apis.dt_utils.model_ha_dt import HierarchicalStateEncoder, build_decision_model
 from src.basic_apis.dt_utils.action_dims import resolve_action_dims_from_env_cfg
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.ppo.ppo_ha_weighted.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.physics_probe import PhysicsProbe
 from src.basic_apis.general_utils import pad_stack_tensor
 
 
-def make_env(cfg, path_manager, rank=0, seed=0):
+def make_env(cfg, path_context, rank=0, seed=0):
     """DT 测试环境工厂"""
     def _init():
         env_config = cfg.env_settings.copy()
-        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_manager)
+        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_context)
         return env
     return _init
 
@@ -260,7 +260,7 @@ def _run_single_episode(
             step_hp_dists, step_nhp_dists)
 
 
-def test_dt_process(cfg, path_manager):
+def test_dt_process(cfg, path_context):
     """
     DT 测试主入口。
     支持多种子循环（test_seeds）和多场景循环（active_scenario_list）。
@@ -378,7 +378,7 @@ def test_dt_process(cfg, path_manager):
             print(f"\n  Seed {seed} / Scenario {scenario_id}")
             np.random.seed(seed)
 
-            env = DummyVecEnv([make_env(cfg.environment, path_manager, rank=0, seed=seed)])
+            env = DummyVecEnv([make_env(cfg.environment, path_context, rank=0, seed=seed)])
 
             # 读取 episode 数量
             scenario_mode_local = cfg.environment.env_settings.scenario_mode

@@ -219,7 +219,7 @@ def generate_latex_table(
 # 主入口
 # ==============================================================================
 
-def generate_results_table(cfg: DictConfig, path_manager):
+def generate_results_table(cfg: DictConfig, path_context):
     """综合结果表生成主入口（channel_generality.py 调用）"""
     table_cfg = cfg.get('generate_results_table', cfg)
 

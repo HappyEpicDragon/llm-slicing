@@ -17,7 +17,7 @@ from ray.rllib.utils.checkpoints import get_checkpoint_info
 
 # Local Imports
 # 注意：请确保这些路径在你的 PYTHONPATH 下
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.ppo.ppo_baseline.env_ray import env_creator
 from src.basic_apis.ppo.ppo_baseline.test_ppo_baseline import init_ray_and_register_env, register_only
 
@@ -273,7 +273,7 @@ def worker_ray_task(agent_id, scen_id, checkpoint_root, env_cfg_dict, pm_root,
         # env_cfg_dict 来自 cfg.environment (= single_scenario_env.yaml)，扁平结构，
         # 顶层直接有 mode / scenario_mode / inside / state_config / channel_class 等键。
         # 与 train_ppo_baseline.py 传给 env_creator 的结构一致。
-        pm = PathManager(pm_root)
+        pm = PathContext(pm_root)
         env_config_dict = dict(env_cfg_dict)
         env_config_dict["mode"] = mode
         if "scenario_mode" not in env_config_dict:
@@ -284,7 +284,7 @@ def worker_ray_task(agent_id, scen_id, checkpoint_root, env_cfg_dict, pm_root,
             return f"❌ Config missing: {scenario_mode}.{mode}"
 
         env_config_dict[scenario_mode][mode]["active_scenario_list"] = [scen_id]
-        env_config_dict["path_manager"] = pm
+        env_config_dict["path_context"] = pm
 
         base_seed = 1000 if mode == 'training' else 2024
         seed = base_seed + (scen_id * 1000) + (agent_id * 100)
@@ -432,9 +432,9 @@ def worker_ray_task(agent_id, scen_id, checkpoint_root, env_cfg_dict, pm_root,
 # ==============================================================================
 
 class RobustCollectorBaseline:
-    def __init__(self, cfg, path_manager):
+    def __init__(self, cfg, path_context):
         self.cfg = cfg
-        self.path_manager = path_manager
+        self.path_context = path_context
 
         dt_cfg = cfg.dt_dataset_collect if 'dt_dataset_collect' in cfg else cfg
         self.output_dir = dt_cfg.output_path
@@ -466,7 +466,7 @@ class RobustCollectorBaseline:
             env_cfg_dict = OmegaConf.to_container(self.cfg.environment, resolve=True)
         else:
             env_cfg_dict = OmegaConf.to_container(self.cfg, resolve=True)
-        pm_root = self.path_manager.hydra_workdir
+        pm_root = self.path_context.hydra_workdir
 
         # 限制每个 worker 任务的 CPU 配额，避免一次并发过高引发 OOM。
         # 可在 yaml 中通过 dt_dataset_collect_baseline.ray_cpus_per_task 覆盖。
@@ -644,8 +644,8 @@ def _merge_eval_to_train(output_dir):
     print(f"  Merged {moved} evaluating files into training")
 
 
-def collect(cfg, path_manager):
-    collector = RobustCollectorBaseline(cfg, path_manager)
+def collect(cfg, path_context):
+    collector = RobustCollectorBaseline(cfg, path_context)
 
     # 1. Collect
     collector.collect_parallel()

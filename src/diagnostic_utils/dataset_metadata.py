@@ -4,7 +4,6 @@ import numpy as np
 import json
 from tqdm import tqdm
 from omegaconf import OmegaConf
-from src.basic_apis.network_slicing_business.path_manager import PathManager
 
 
 def compute_stats():

@@ -11,8 +11,8 @@ model_scenario: 2 # ${test_scenario}
 
 test_ppo_ha:
   environment: ${environment}
-  model_base_dir: /root/decision_transformer_slicing/data/channel_generality/ppo_ha/models/
-  model_path: /root/decision_transformer_slicing/data/channel_generality/ppo_ha/models/scenario_${model_scenario}/final_model_ha_best.zip
+  model_base_dir: ${paths.channel_generality}/ppo_ha/models/
+  model_path: ${paths.channel_generality}/ppo_ha/models/scenario_${model_scenario}/final_model_ha_best.zip
   env_updates:
     mode: testing
     scenario_mode: inside

@@ -10,7 +10,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from src.basic_apis.ppo.ppo_lstm.train_recurrent_ppo import make_env
 
 
-def test_ppo_lstm(cfg, path_manager):
+def test_ppo_lstm(cfg, path_context):
     environment_cfg = cfg.environment
     env_updates = cfg.env_updates
     environment_cfg.env_settings.mode = env_updates.mode
@@ -21,10 +21,10 @@ def test_ppo_lstm(cfg, path_manager):
     environment_cfg.env_settings.inside.testing.update(env_updates.inside.testing)
     # model_path = os.path.join(cfg.model_base_dir, env_updates.model_name, 'best_model', 'best_model.zip')
     model_path = '/root/decision_transformer_slicing/data/channel_generality/ppo_lstm/models/sla_rbg/best_model.zip'
-    test(model_path, environment_cfg, path_manager)
+    test(model_path, environment_cfg, path_context)
 
 
-def test(model_path, cfg, path_manager):
+def test(model_path, cfg, path_context):
     """
     单环境串行评估（手动累积奖励修复版）
     """
@@ -36,7 +36,7 @@ def test(model_path, cfg, path_manager):
     # 2. 创建环境
     seed = cfg.train_rl.evaluation.eval_env.seed
     # 注意：即使这里没有 Monitor 也没关系，我们下面手动算
-    env = DummyVecEnv([make_env(cfg, path_manager, rank=0, seed=seed)])
+    env = DummyVecEnv([make_env(cfg, path_context, rank=0, seed=seed)])
 
     scenario_mode = cfg.env_settings.scenario_mode
     n_eval_episodes = (

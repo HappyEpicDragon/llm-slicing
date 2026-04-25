@@ -9,7 +9,7 @@ platforms = ["linux-64"]
 version = "0.1.0"
 
 [system-requirements]
-cuda = "11.4"                   # 驱动 470 最高支持 CUDA 11.4
+cuda = "12.1"                   # 驱动 570 支持 CUDA 12.8，PyTorch 2.1 编译目标 12.1
 
 [tasks]
 train = "python simu.py"
@@ -25,11 +25,11 @@ xai = "python -c \"import sys, subprocess; subprocess.run(['python', 'main.py', 
 [dependencies]
 python = ">=3.10,<3.11"
 
-# --- PyTorch Stack (CUDA 11.3, 兼容驱动 470) ---
-pytorch       = { version = ">=1.12,<1.13", channel = "pytorch" }
-torchvision   = { version = ">=0.13,<0.14", channel = "pytorch" }
-torchaudio    = { version = ">=0.12,<0.13", channel = "pytorch" }
-cudatoolkit   = { version = "11.3.*" }
+# --- PyTorch Stack (CUDA 12.1, 兼容驱动 570 / CUDA 12.8) ---
+pytorch       = { version = ">=2.1,<2.2", channel = "pytorch" }
+torchvision   = { version = ">=0.16,<0.17", channel = "pytorch" }
+torchaudio    = { version = ">=2.1,<2.2", channel = "pytorch" }
+pytorch-cuda  = { version = "12.1.*", channel = "pytorch" }
 numpy = ">=1.20,<2.0"
 
 # --- Ray RLlib Stack ---
@@ -85,5 +85,6 @@ ittapi = ">=3.26.7,<4"
 # d3rlpy            = ">=2.8.1,<3"        # 注意：可能需要 PyTorch 2.x，解析失败则去掉
 mkl = "<2024"
 d3rlpy = ">=2.0.4,<3"
+openai = ">=2.31.0,<3"
 
 [pypi-dependencies]

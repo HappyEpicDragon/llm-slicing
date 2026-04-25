@@ -8,7 +8,7 @@ mode: dt_dataset_collect
 workdir: ${hydra:runtime.output_dir}
 
 dt_dataset_collect:
-  model_path: "/root/decision_transformer_slicing/data/channel_generality/ppo_ha/models/scenario_0/final_model_ha_best.zip"
+  model_path: "${paths.channel_generality}/ppo_ha/models/scenario_0/final_model_ha_best.zip"
   output_path: ${workdir}
   episodes_per_scenario: 5      # 每个场景采集几条轨迹
   deterministic_ratio: 0.2      # 确定性策略比例

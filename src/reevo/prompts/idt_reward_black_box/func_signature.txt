@@ -1,0 +1,11 @@
+def compute_reward_v{version}(
+    slice_min_margins: list,
+    slice_mean_margins: list,
+    slice_metric_margins: list,
+    is_hp: list,
+    num_active_slices: int,
+    prev_min_margins: list,
+    prev_mean_margins: list,
+    slice_mean_buffer_occ: list,
+    slice_max_buffer_occ: list,
+) -> float:

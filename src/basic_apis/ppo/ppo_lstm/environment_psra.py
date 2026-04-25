@@ -7,7 +7,7 @@ from hydra.utils import get_class
 
 from src.basic_apis.network_slicing_business.network_slicing_business_executor import ComponentConfig, ComponentClasses, \
     ComponentFactory, NetworkSlicingBusinessExecutor
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.ppo.utils import intent_drift_calc
 
 
@@ -77,7 +77,7 @@ class EnvironmentState:
 class PSJRAEnv(gym.Env):
     """Progressive Sequential Joint Resource Allocation Environment"""
 
-    def __init__(self, env_config, np_random, path_manager):
+    def __init__(self, env_config, np_random, path_context):
         super().__init__()
         self.env_config = env_config
         self.mode = self.env_config.mode
@@ -104,7 +104,7 @@ class PSJRAEnv(gym.Env):
                                              TrafficClass=traffic_class, MobilityClass=mobility_class)
         self.component_factory = ComponentFactory(component_config=self.component_config,
                                                   component_classes=component_classes, np_random=self.np_random,
-                                                  path_manager=path_manager)
+                                                  path_context=path_context)
 
         self.business_executor = None
         self._create_scenario()

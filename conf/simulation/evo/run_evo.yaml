@@ -1,0 +1,33 @@
+# @package _global_
+
+defaults:
+  - /reevo/problem@run_evo.reevo.problem: idt_reward
+  - /reevo/llm_client@run_evo.reevo.llm_client: openrouter
+  - /reevo/llm_client@run_evo.reevo.llm_long_ref: null
+  - /reevo/llm_client@run_evo.reevo.llm_short_ref: null
+  - /reevo/llm_client@run_evo.reevo.llm_crossover: null
+  - /reevo/llm_client@run_evo.reevo.llm_mutation: null
+
+name: evo
+mode: run_evo
+workdir: ${hydra:runtime.output_dir}
+
+run_evo:
+  # --- 编排参数（EvoSimulator 使用） ---
+  proxy_scenario: 2
+  proxy_scenarios: "2"
+  proxy_train_ratio: 0.3
+  seed: 42
+
+  # --- ReEvo 算法参数（直接传给 ReEvo 类） ---
+  reevo:
+    algorithm: reevo
+    max_fe: 80
+    pop_size: 16
+    init_pop_size: 30
+    mutation_rate: 0.5
+    timeout: 7200
+    num_gpus: 4
+    per_gpu: 2
+    # problem 和 llm_client 通过 defaults 注入
+    # llm_long_ref / llm_short_ref / llm_crossover / llm_mutation 通过 defaults 注入（null = 使用默认 client）

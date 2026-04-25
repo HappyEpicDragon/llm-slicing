@@ -20,8 +20,8 @@ SATISFIED_BONUS = 0.05  # fixed bonus per satisfied slice (not proportional to m
 
 class HierarchicalSlicingEnvV2(HierarchicalSlicingEnv):
 
-    def __init__(self, env_settings, np_random, path_manager):
-        super().__init__(env_settings, np_random, path_manager)
+    def __init__(self, env_settings, np_random, path_context):
+        super().__init__(env_settings, np_random, path_context)
 
         # Override observation space
         self.observation_space = spaces.Dict({

@@ -8,7 +8,7 @@ from omegaconf import OmegaConf
 
 # === Local Imports ===
 from src.basic_apis.dt_baseline.model_baseline_dt import DecisionTransformerBaseline, BaselineStateEncoder
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.ppo.ppo_baseline.env_ray import env_creator
 from src.basic_apis.ppo.ppo_baseline.test_ppo_baseline import init_ray_and_register_env, register_only
 
@@ -87,7 +87,7 @@ def flatten_obs(obs_d):
     return np.concatenate(flat, axis=0).astype(np.float32)
 
 
-def make_env(cfg, path_manager, seed=0, scenario_id=None):
+def make_env(cfg, path_context, seed=0, scenario_id=None):
     """创建 Ray 兼容的评估环境"""
     env_config = OmegaConf.to_container(cfg.environment, resolve=True)
 
@@ -99,7 +99,7 @@ def make_env(cfg, path_manager, seed=0, scenario_id=None):
     env_config['scenario_mode'] = scenario_mode
     env_config['model_name'] = updates.model_name
 
-    env_config["path_manager"] = path_manager
+    env_config["path_context"] = path_context
     env_config['seed'] = seed
     env_config['seed_test'] = seed
 
@@ -225,7 +225,7 @@ def _run_single_episode(env, model, obs_mean, obs_std, context_len, target_rtg, 
     return ep_reward, hp_viol_ep, nhp_viol_ep, hp_dist_ep, nhp_dist_ep, step_hp_dists, step_nhp_dists
 
 
-def test_dt_baseline(cfg, path_manager):
+def test_dt_baseline(cfg, path_context):
     """DT-Baseline 测试入口，支持 5 seeds × N 场景，保存标准 JSON。"""
     dt_cfg = cfg.train_dt if 'train_dt' in cfg else cfg
     device = torch.device("cpu")
@@ -288,7 +288,7 @@ def test_dt_baseline(cfg, path_manager):
             print(f"  Seed {seed} / Scenario {scenario_id}")
             np.random.seed(seed)
 
-            env = make_env(cfg, path_manager, seed=seed, scenario_id=scenario_id)
+            env = make_env(cfg, path_context, seed=seed, scenario_id=scenario_id)
 
             ep_rewards, ep_hp_viols, ep_nhp_viols = [], [], []
             ep_hp_dists, ep_nhp_dists = [], []

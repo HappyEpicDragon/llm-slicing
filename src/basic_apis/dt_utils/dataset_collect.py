@@ -12,13 +12,13 @@ from omegaconf import OmegaConf
 # === Local Imports ===
 from src.basic_apis.ppo.ppo_ha.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.ppo.ppo_ha.agent_hierarchical import HierarchicalSmartPolicy
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 
 
 class RobustCollector:
-    def __init__(self, cfg, path_manager, model_path, output_dir):
+    def __init__(self, cfg, path_context, model_path, output_dir):
         self.cfg = cfg
-        self.path_manager = path_manager
+        self.path_context = path_context
         self.model_path = model_path
         self.output_dir = output_dir
 
@@ -56,7 +56,7 @@ class RobustCollector:
             if target_cfg.active_scenario_list is None:
                 target_cfg.active_scenario_list = [0]
 
-            env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed), self.path_manager)
+            env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed), self.path_context)
             return env
 
         return _init
@@ -231,7 +231,7 @@ class RobustCollector:
 
 
 
-def collect(cfg, path_manager):
+def collect(cfg, path_context):
     env_cfg = cfg.environment
     env_update = cfg.env_updates
     env_cfg.env_settings.model_name = env_update.model_name
@@ -247,7 +247,7 @@ def collect(cfg, path_manager):
     model_path = cfg.model_path
     output_dir = cfg.output_path
 
-    collector = RobustCollector(env_cfg, path_manager, model_path, output_dir)
+    collector = RobustCollector(env_cfg, path_context, model_path, output_dir)
 
     # 1. 收集训练集 (扩充到 2000 条以覆盖更多随机性)
     collector.collect(mode='training', target_episodes=2000)
@@ -267,7 +267,7 @@ if __name__ == "__main__":
     #
     # if os.path.exists(config_path):
     #     cfg = OmegaConf.load(config_path)
-    #     pm = PathManager(os.getcwd())
+    #     pm = PathContext(os.getcwd())
     #
     #     collector = RobustCollector(cfg, pm, model_path, output_dir)
     #

@@ -7,7 +7,7 @@ from pathlib import Path
 import h5py
 from copy import deepcopy
 
-from .path_manager import PathManager
+from .path_context import PathContext
 
 
 
@@ -483,7 +483,7 @@ class Association(ABC):
         max_number_basestations: int,
         max_number_slices: int,
         rng: np.random.Generator = np.random.default_rng(),
-        path_manager: PathManager = None,
+        path_context: PathContext = None,
     ) -> None:
         """
         Parameters
@@ -502,7 +502,7 @@ class Association(ABC):
         self.max_number_basestations = max_number_basestations
         self.max_number_slices = max_number_slices
         self.rng = rng
-        self.path_manager = path_manager
+        self.path_context = path_context
 
     @abstractmethod
     def step(
@@ -705,7 +705,7 @@ class Channel(ABC):
     def __init__(
         self,
         num_available_rbs: np.ndarray,
-        path_manager: PathManager = None,
+        path_context: PathContext = None,
     ) -> None:
         """
         Parameters
@@ -718,7 +718,7 @@ class Channel(ABC):
             Number of radio resource blocks available per basestation
         """
         self.num_available_rbs = num_available_rbs
-        self.path_manager = path_manager
+        self.path_context = path_context
 
     @abstractmethod
     def step(
@@ -769,10 +769,10 @@ class Metrics:
 
     def __init__(
         self,
-        path_manager: PathManager,
+        path_context: PathContext,
     ) -> None:
 
-        self.path_manager = path_manager
+        self.path_context = path_context
         self.metrics_hist = {
             "pkt_incoming": [],
             "pkt_throughputs": [],
@@ -815,7 +815,7 @@ class Metrics:
 
     def save(self, *path_parts: str) -> None:
         """Save collected metric values to an external file"""
-        base_path = Path(self.path_manager.get_save_metrics_dir_path())
+        base_path = Path(self.path_context.get_save_metrics_dir_path())
         full_path = base_path / Path(*path_parts)
 
         # 一行代码同时创建目录并保存
@@ -1041,7 +1041,7 @@ class MultSliceAssociation(Association):
         max_number_basestations: int,
         max_number_slices: int,
         rng: np.random.Generator = np.random.default_rng(),
-        path_manager: PathManager = None,
+        path_context: PathContext = None,
         generator_mode: bool = False,
         difficulty_config: dict = None,
     ) -> None:
@@ -1051,7 +1051,7 @@ class MultSliceAssociation(Association):
             max_number_basestations,
             max_number_slices,
             rng,
-            path_manager,
+            path_context,
         )
         # Generate Mode
         self.min_number_slices = 3
@@ -1531,7 +1531,7 @@ class MultSliceAssociation(Association):
 
     def load_episode_data(self, episode_number: int):
         with np.load(
-                self.path_manager.get_association_file_path(episode_number),
+                self.path_context.get_association_file_path(episode_number),
                 allow_pickle=True,
         ) as data:
             self.hist_slice_ue_assoc = data["hist_slice_ue_assoc"]
@@ -1577,7 +1577,7 @@ class MultSliceAssociation(Association):
     # # [修改] 在加载数据时注入修改逻辑
     # def load_episode_data(self, episode_number: int):
     #     with np.load(
-    #             self.path_manager.get_association_file_path(episode_number),
+    #             self.path_context.get_association_file_path(episode_number),
     #             allow_pickle=True,
     #     ) as data:
     #         self.hist_slice_ue_assoc = data["hist_slice_ue_assoc"]
@@ -1647,7 +1647,7 @@ class MultSliceAssociationSeq(MultSliceAssociation):
         max_number_basestations: int,
         max_number_slices: int,
         rng: np.random.Generator = np.random.default_rng(),
-        path_manager: PathManager = None,
+        path_context: PathContext = None,
         generator_mode: bool = False,
     ) -> None:
         super().__init__(
@@ -1656,7 +1656,7 @@ class MultSliceAssociationSeq(MultSliceAssociation):
             max_number_basestations=max_number_basestations,
             max_number_slices=max_number_slices,
             rng=rng,
-            path_manager=path_manager,
+            path_context=path_context,
             generator_mode=generator_mode,
         )
         self.channels_per_scenario = 100
@@ -1686,11 +1686,11 @@ class QuadrigaChannel(Channel):
     def __init__(
             self,
             num_available_rbs: np.ndarray,
-            path_manager: PathManager = None,
+            path_context: PathContext = None,
     ) -> None:
         super().__init__(
             num_available_rbs,
-            path_manager,
+            path_context,
         )
         # === 优化变量初始化 ===
         self.current_episode_number = -1
@@ -1724,8 +1724,8 @@ class QuadrigaChannel(Channel):
                     (target_ep != self.cached_episode_idx) or \
                     (self.cached_channel_data is None):
 
-                npz_path = self.path_manager.get_channel_npz_path(target_assoc, target_ep)
-                mat_path = self.path_manager.get_channel_file_path(target_assoc, target_ep)
+                npz_path = self.path_context.get_channel_npz_path(target_assoc, target_ep)
+                mat_path = self.path_context.get_channel_file_path(target_assoc, target_ep)
 
                 try:
                     if os.path.exists(npz_path):
@@ -1826,11 +1826,11 @@ class QuadrigaChannelSeq(QuadrigaChannel):
     def __init__(
             self,
             num_available_rbs: np.ndarray,
-            path_manager: PathManager = None,
+            path_context: PathContext = None,
     ) -> None:
         super().__init__(
             num_available_rbs,
-            path_manager,
+            path_context,
         )
 
     def choose_episode(

@@ -1,3 +1,0 @@
-# @package model
-ppo: /root/decision_transformer_slicing/data/channel_generality/archive_before_all_training_set/ppo_ha_weighted/models/scenario_2/final_model_ha_best.zip
-dt: /root/decision_transformer_slicing/data/channel_generality/dt/model/best_dt_model.pth

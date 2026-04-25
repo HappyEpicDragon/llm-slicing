@@ -7,7 +7,7 @@ from hydra.utils import get_class
 
 from src.basic_apis.network_slicing_business.network_slicing_business_executor \
     import ComponentConfig, ComponentClasses, ComponentFactory, NetworkSlicingBusinessExecutor
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 # 导入必要的计算函数
 from src.basic_apis.ppo.utils import intent_drift_calc
 from src.basic_apis.codebook_utils import build_dirichlet_inter_quota_codebook
@@ -22,11 +22,11 @@ class EnvCompatibilityWrapper:
 class HierarchicalSlicingEnv(gym.Env):
     metadata = {'render_modes': ['human']}
 
-    def __init__(self, env_settings, np_random, path_manager: PathManager):
+    def __init__(self, env_settings, np_random, path_context: PathContext):
         super().__init__()
         self.config = env_settings
         self.np_random = np_random
-        self.path_manager = path_manager
+        self.path_context = path_context
 
         # === 1. 业务组件初始化 ===
         self.mode = self.config.mode
@@ -40,7 +40,7 @@ class HierarchicalSlicingEnv(gym.Env):
             MobilityClass=get_class(self.config.components.mobility.class_path)
         )
         self.component_factory = ComponentFactory(
-            self.components_config, component_classes, self.np_random, self.path_manager
+            self.components_config, component_classes, self.np_random, self.path_context
         )
 
         self.components = None
@@ -100,6 +100,10 @@ class HierarchicalSlicingEnv(gym.Env):
 
         self.env_wrapper = EnvCompatibilityWrapper(self)
 
+        # === prev-step margin cache for reward function ===
+        self._prev_min_margins: list = [0.0] * self.num_slices
+        self._prev_mean_margins: list = [0.0] * self.num_slices
+
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         current_scenario_id = self.scenario_list[self.scenario_pointer]
@@ -111,6 +115,8 @@ class HierarchicalSlicingEnv(gym.Env):
             self.internal_episode_ptr = self.init_ep
             self.scenario_pointer = (self.scenario_pointer + 1) % len(self.scenario_list)
         self.current_timestep = 0
+        self._prev_min_margins = [0.0] * self.num_slices
+        self._prev_mean_margins = [0.0] * self.num_slices
         self.last_unformatted_obs_deque.clear()
         self.last_raw_obs = None
         self.last_inter_alloc_ratio.fill(0.0)
@@ -934,41 +940,113 @@ class HierarchicalSlicingEnv(gym.Env):
         global_feat = np.array([self.current_timestep / 1000.0, np.sum(self.last_inter_alloc_ratio)], dtype=np.float32)
         return {"inter_feat": inter_feat, "intra_feat": intra_feat, "global_feat": global_feat}
 
-    def _calculate_simple_reward(self, metrics):
-        raw_intent_drift = metrics.get("intent_drift")
-        slice_assoc = self.components.slices.ue_assoc
-        # [FIX] 使用正确的复数形式 slice_reqs
-        slice_reqs = metrics.get('slice_req', {})
+    def _compute_slice_info(self, metrics):
+        """从 metrics 提取供 reward function 使用的结构化信号。
 
-        slice_scores = []
-        slice_priorities = []
+        Returns 9-tuple:
+            (slice_min_margins, slice_mean_margins, slice_metric_margins,
+             is_hp, num_active_slices, prev_min_margins, prev_mean_margins,
+             slice_mean_buffer_occ, slice_max_buffer_occ)
+        """
+        raw_intent_drift = metrics.get("intent_drift")  # (num_slices, users_per_slice, 3)
+        slice_assoc = self.components.slices.ue_assoc   # (num_slices, max_users)
+        slice_reqs = metrics.get('slice_req', {})
+        buffer_occ = metrics.get("buffer_occupancies", np.zeros(self.max_users))
+
+        slice_min_margins = []
+        slice_mean_margins = []
+        slice_metric_margins = []  # list of {"thr": float, "rel": float, "lat": float}
+        is_hp = []
+        slice_mean_buffer_occ = []
+        slice_max_buffer_occ = []
 
         for s_idx in range(self.num_slices):
-            # [FIX] 修正变量名错误: slice_req -> slice_reqs
             req = slice_reqs.get(f'slice_{s_idx}', {})
             priority = req.get('priority', 0)
             active_users = np.where(slice_assoc[s_idx] > 0)[0]
-            if len(active_users) == 0: continue
+            if len(active_users) == 0:
+                continue
 
-            valid_drifts = []
             limit = min(len(active_users), self.users_per_slice)
+
+            # --- composite drifts (across all metrics, all users) ---
+            all_valid = []
+            metric_valid = {m: [] for m in ['thr', 'rel', 'lat']}
+            metric_names = ['thr', 'rel', 'lat']
             for u_local_idx in range(limit):
-                for m_idx in range(3):
+                for m_idx, m_name in enumerate(metric_names):
                     drift = raw_intent_drift[s_idx, u_local_idx, m_idx]
-                    if drift > -1.5: valid_drifts.append(drift)
+                    if drift > -1.5:
+                        all_valid.append(drift)
+                        metric_valid[m_name].append(drift)
 
-            if len(valid_drifts) > 0:
-                slice_scores.append(np.min(valid_drifts))
-                slice_priorities.append(priority)
+            if all_valid:
+                slice_min_margins.append(float(np.min(all_valid)))
+                slice_mean_margins.append(float(np.mean(all_valid)))
             else:
-                slice_scores.append(0.0)
-                slice_priorities.append(priority)
+                slice_min_margins.append(0.0)
+                slice_mean_margins.append(0.0)
 
-        slice_scores = np.array(slice_scores)
-        slice_priorities = np.array(slice_priorities)
-        if len(slice_scores) == 0: return 0.0
+            per_metric = {}
+            for m_name in ['thr', 'rel', 'lat']:
+                vals = metric_valid[m_name]
+                per_metric[m_name] = float(np.mean(vals)) if vals else 0.0
+            slice_metric_margins.append(per_metric)
 
-        # 1. NHP Capping (0.2 factor)
+            is_hp.append(bool(priority > 0))
+
+            # --- buffer occupancy stats for this slice ---
+            users_in_slice = np.where(slice_assoc[s_idx] > 0)[0]
+            if len(users_in_slice) > 0:
+                bufs = buffer_occ[users_in_slice]
+                slice_mean_buffer_occ.append(float(np.mean(bufs)))
+                slice_max_buffer_occ.append(float(np.max(bufs)))
+            else:
+                slice_mean_buffer_occ.append(0.0)
+                slice_max_buffer_occ.append(0.0)
+
+        n = len(slice_min_margins)
+
+        # snapshot prev, then update cache
+        prev_min = list(self._prev_min_margins[:n])
+        prev_mean = list(self._prev_mean_margins[:n])
+        self._prev_min_margins[:n] = slice_min_margins
+        self._prev_mean_margins[:n] = slice_mean_margins
+
+        return (
+            slice_min_margins,
+            slice_mean_margins,
+            slice_metric_margins,
+            is_hp,
+            n,
+            prev_min,
+            prev_mean,
+            slice_mean_buffer_occ,
+            slice_max_buffer_occ,
+        )
+
+    def _builtin_compute_reward(
+        self,
+        slice_min_margins,
+        slice_mean_margins,
+        slice_metric_margins,
+        is_hp,
+        num_active_slices,
+        prev_min_margins,
+        prev_mean_margins,
+        slice_mean_buffer_occ,
+        slice_max_buffer_occ,
+    ):
+        """当前手工设计的 reward，等价于原 _calculate_simple_reward（不含 clamp）。
+        此方法为 compute_reward_fn 的 fallback，语义与原实现一致。
+        """
+        if num_active_slices == 0:
+            return 0.0
+
+        slice_scores = np.array(slice_min_margins, dtype=np.float64)
+        slice_priorities = np.array([1 if hp else 0 for hp in is_hp], dtype=np.float64)
+
+        # 1. NHP Capping
         capped_scores = np.where(slice_scores > 0, slice_scores * 0.2, slice_scores)
 
         # 2. HP 指数重罚
@@ -983,21 +1061,36 @@ class HierarchicalSlicingEnv(gym.Env):
         if min_score < 0:
             base_reward = min_score * 2.0
         else:
-            base_reward = np.mean(capped_scores)
+            base_reward = float(np.mean(capped_scores))
 
-        # 4. Risk Penalty
+        # 4. Risk Penalty（近似等价，使用 per-slice max buffer occ）
+        risk_loss = 0.0
+        max_buf = np.array(slice_max_buffer_occ, dtype=np.float64)
+        danger_mask = max_buf > 0.8
+        if np.any(danger_mask):
+            risk_loss = np.sum(np.exp(max_buf[danger_mask] * 5.0))
+        risk_coef = getattr(self, 'reward_weights', {}).get('risk_coef', 0.2)
+        risk_penalty = -1.0 * risk_loss * risk_coef
+
+        return float(base_reward + hp_penalty + risk_penalty)
+
+    def _calculate_simple_reward(self, metrics):
+        """计算单步 reward，支持 compute_reward_fn 插拔。"""
+        _REWARD_LOWER, _REWARD_UPPER = -10.0, 10.0
+        info = self._compute_slice_info(metrics)
+        reward_fn = getattr(self, 'compute_reward_fn', self._builtin_compute_reward)
+        reward = float(np.clip(reward_fn(*info), _REWARD_LOWER, _REWARD_UPPER))
+        return reward
+
+    def _compute_risk_penalty(self, metrics):
+        """原始 per-user risk penalty（保留供参考，不再被 _calculate_simple_reward 调用）。"""
         buffer_occ = metrics.get("buffer_occupancies", np.zeros(self.max_users))
         risk_loss = 0.0
         danger_mask = buffer_occ > 0.8
         if np.any(danger_mask):
             risk_loss = np.sum(np.exp(buffer_occ[danger_mask] * 5.0))
-
         risk_coef = getattr(self, 'reward_weights', {}).get('risk_coef', 0.2)
-        risk_penalty = -1.0 * risk_loss * risk_coef
-
-        total_reward = base_reward + hp_penalty + risk_penalty
-
-        return total_reward
+        return -1.0 * risk_loss * risk_coef
 
     def _handle_testing_save(self):
         self.business_executor.save_metric(self.config.model_name, f"ep_{self.current_episode_idx}.npz")

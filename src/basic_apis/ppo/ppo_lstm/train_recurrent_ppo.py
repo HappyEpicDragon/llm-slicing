@@ -31,7 +31,7 @@ import torch
 # ==================== 修改结束 ====================
 
 
-def make_env(cfg, path_manager, rank=0, seed=None):
+def make_env(cfg, path_context, rank=0, seed=None):
     """
     创建单个环境的工厂函数
     """
@@ -43,7 +43,7 @@ def make_env(cfg, path_manager, rank=0, seed=None):
             env_seed = seed + rank
 
         np_random = np.random.default_rng(env_seed)
-        env = PSJRAEnv(cfg.env_settings, np_random, path_manager)
+        env = PSJRAEnv(cfg.env_settings, np_random, path_context)
         env._np_random_seed = env_seed
         if cfg.env_settings.mode != 'testing':
             env = Monitor(env)
@@ -196,7 +196,7 @@ class DetailedLoggingCallback(BaseCallback):
 # ==================== 修改结束 ====================
 
 
-def train(cfg: DictConfig, path_manager):
+def train(cfg: DictConfig, path_context):
     """使用Hydra配置进行训练"""
 
     # ==================== 原有代码：创建输出目录 ====================
@@ -241,12 +241,12 @@ def train(cfg: DictConfig, path_manager):
 
     if n_envs > 1:
         env = DummyVecEnv([
-            make_env(env_config, path_manager, rank=i, seed=seed)
+            make_env(env_config, path_context, rank=i, seed=seed)
             for i in range(n_envs)
         ])
     else:
         env = DummyVecEnv([
-            make_env(env_config, path_manager, rank=0, seed=seed)
+            make_env(env_config, path_context, rank=0, seed=seed)
         ])
 
     if env_config.train_rl.debug.check_env:
@@ -255,7 +255,7 @@ def train(cfg: DictConfig, path_manager):
             test_env = PSJRAEnv(
                 env_config.env_settings,
                 np.random.default_rng(seed),
-                path_manager
+                path_context
             )
             check_env(test_env, warn=True)
             test_env.close()
@@ -273,7 +273,7 @@ def train(cfg: DictConfig, path_manager):
         eval_seed = env_config.train_rl.evaluation.eval_env.seed
         env_config.env_settings.mode = 'evaluating'
         eval_env = DummyVecEnv([
-            make_env(env_config, path_manager, rank=999, seed=eval_seed)
+            make_env(env_config, path_context, rank=999, seed=eval_seed)
         ])
     # ==================== 原有代码结束 ====================
 

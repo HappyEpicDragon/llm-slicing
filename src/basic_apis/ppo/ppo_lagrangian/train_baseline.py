@@ -31,13 +31,13 @@ from src.basic_apis.asset_utils import (
 NUM_SLICES = 5
 
 
-def _build_comm_env_cfg(base_env_cfg: dict, path_manager,
+def _build_comm_env_cfg(base_env_cfg: dict, path_context,
                         active_scenarios: list, seed: int) -> dict:
     """从 single_scenario_env 格式的 Hydra 环境配置构造 CommunicationEnv 所需的 dict。"""
     from hydra.utils import get_class
 
     cfg = dict(base_env_cfg)
-    cfg['path_manager'] = path_manager
+    cfg['path_context'] = path_context
     cfg['seed'] = seed
     cfg['seed_test'] = seed
     cfg['mode'] = 'training'
@@ -229,7 +229,7 @@ class LagrangianAugmentedBaselineEnv(gym.Env):
         self._inner.close()
 
 
-def train_ppo_lagrangian_baseline(cfg: DictConfig, path_manager):
+def train_ppo_lagrangian_baseline(cfg: DictConfig, path_context):
     """PPO-Lagrangian Baseline 训练主函数（使用 CommunicationEnv + IBSched 环境）。"""
     train_cfg = cfg.train_ppo_lagrangian_baseline
 
@@ -243,7 +243,7 @@ def train_ppo_lagrangian_baseline(cfg: DictConfig, path_manager):
 
     # 从 Hydra 环境配置构建 CommunicationEnv cfg dict
     base_env_cfg = OmegaConf.to_container(cfg.environment, resolve=True)
-    comm_env_cfg = _build_comm_env_cfg(base_env_cfg, path_manager, scenarios, seed)
+    comm_env_cfg = _build_comm_env_cfg(base_env_cfg, path_context, scenarios, seed)
 
     # 保存路径
     save_path = str(train_cfg.get(

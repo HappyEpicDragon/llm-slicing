@@ -1,0 +1,42 @@
+# @package _global_
+# Run ReEvo on power control reward design
+# Usage: python main.py simulation=power_control/run_evo
+
+defaults:
+  - /environment: power_control_env
+  - /reevo/problem@run_evo.reevo.problem: power_control_reward
+  - /reevo/llm_client@run_evo.reevo.llm_client: openrouter
+  - /reevo/llm_client@run_evo.reevo.llm_long_ref: null
+  - /reevo/llm_client@run_evo.reevo.llm_short_ref: null
+  - /reevo/llm_client@run_evo.reevo.llm_crossover: null
+  - /reevo/llm_client@run_evo.reevo.llm_mutation: null
+
+name: power_control
+mode: run_evo
+workdir: ${hydra:runtime.output_dir}
+
+run_evo:
+  environment: ${environment}
+
+  proxy_scenario: 10
+  proxy_train_ratio: 0.3
+  seed: 42
+  output_dir: ${paths.power_control_results}/evo
+
+  reevo:
+    algorithm: reevo
+    max_fe: 20
+    pop_size: 10
+    init_pop_size: 12
+    mutation_rate: 0.3
+    timeout: 7200
+    num_gpus: 0
+    per_gpu: 1
+    # problem and llm clients are injected via defaults
+
+# Environment for evolution
+environment:
+  K: 10
+  N: 10
+  episode_length: 1000
+  seed: 42

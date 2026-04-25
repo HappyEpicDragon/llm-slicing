@@ -12,20 +12,20 @@ from src.basic_apis.ppo.ppo_oneshot.agent_oneshot import CustomFeatureExtractor
 from src.basic_apis.physics_probe import PhysicsProbe, SLAProbe
 
 
-def make_env(cfg, path_manager, rank=0, seed=None):
+def make_env(cfg, path_context, rank=0, seed=None):
     """
     One-Shot 环境工厂函数
     """
 
     def _init():
         # 确保使用的是 GlobalSlicingEnv
-        env = GlobalSlicingEnv(cfg.env_settings, np.random.default_rng(seed + rank), path_manager)
+        env = GlobalSlicingEnv(cfg.env_settings, np.random.default_rng(seed + rank), path_context)
         return env
 
     return _init
 
 
-def test_ppo_oneshot(cfg, path_manager):
+def test_ppo_oneshot(cfg, path_context):
     environment_cfg = cfg.environment
     env_updates = cfg.env_updates
 
@@ -44,11 +44,11 @@ def test_ppo_oneshot(cfg, path_manager):
 
     model_path = '/root/decision_transformer_slicing/data/channel_generality/ppo_oneshot/models/scenario_0/best_model/best_model.zip'
 
-    test(model_path, environment_cfg, path_manager)
-    # prove_blindness(model_path, environment_cfg, path_manager)
+    test(model_path, environment_cfg, path_context)
+    # prove_blindness(model_path, environment_cfg, path_context)
 
 
-def test(model_path, cfg, path_manager):
+def test(model_path, cfg, path_context):
     """
     One-Shot 模型评估脚本
     """
@@ -59,7 +59,7 @@ def test(model_path, cfg, path_manager):
 
     # 2. 创建环境
     seed = cfg.train_rl.evaluation.eval_env.seed
-    env = DummyVecEnv([make_env(cfg, path_manager, rank=0, seed=seed)])
+    env = DummyVecEnv([make_env(cfg, path_context, rank=0, seed=seed)])
 
     # 计算需要评估的总 Scenario 数量
     scenario_mode = cfg.env_settings.scenario_mode

@@ -4,7 +4,7 @@ from .ray_agent import RayAgent
 from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
 
 
-def train_ppo(cfg, path_manager):
+def train_ppo(cfg, path_context):
     asset_cfg = cfg.get("asset", None)
     run_dir = None
     model_root = None
@@ -25,11 +25,11 @@ def train_ppo(cfg, path_manager):
         else:
             ensure_dir(run_dir)
         cfg.hydra_workdir = run_dir
-        path_manager.hydra_workdir = run_dir
+        path_context.hydra_workdir = run_dir
         print(f"[Asset] versioned run dir: {run_dir}")
 
     env_config = OmegaConf.to_container(cfg.environment, resolve=True)
-    env_config["path_manager"] = path_manager
+    env_config["path_context"] = path_context
     env_config['mode'] = cfg.env_updates.mode
     scenario_mode = cfg.env_updates.scenario_mode
     env_config['scenario_mode'] = scenario_mode
@@ -52,7 +52,7 @@ def train_ppo(cfg, path_manager):
     agent = RayAgent(
         env_creator=env_creator,
         env_config=env_config,
-        path_manager=path_manager,
+        path_context=path_context,
         **ray_config
     )
     agent.train()

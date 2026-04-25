@@ -1,4 +1,6 @@
 defaults:
+  - _self_
+  - paths: default
   - simulation: null
 
 hydra:

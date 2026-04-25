@@ -25,20 +25,20 @@ def extract_ppo_features(model, obs):
     return features.cpu().numpy().flatten()
 
 
-def run_ppo_collection(cfg, path_manager):
+def run_ppo_collection(cfg, path_context):
     """
     语义流形对齐实验 - PPO 数据采集入口
 
     Args:
         cfg: Hydra 配置对象 (包含 model_paths, scenarios 等)
-        path_manager: 用于处理路径的工具类
+        path_context: 用于处理路径的工具类
     """
     print(f"🚀 [PPO] Starting Data Collection")
     print(f"    Model Path: {cfg.model_paths.ppo}")
 
     # 1. 准备工作
     # 确保输出目录存在
-    save_dir = resolve_project_path(path_manager, cfg.asset_dir)
+    save_dir = resolve_project_path(path_context, cfg.asset_dir)
     os.makedirs(save_dir, exist_ok=True)
 
     # 加载基础环境配置 (hierarchical_env.yaml)
@@ -71,7 +71,7 @@ def run_ppo_collection(cfg, path_manager):
         print(f"👉 Processing {scen_conf.name} (Scenario {scen_conf.scenario_id})...")
 
         # 创建环境
-        env = make_env_for_scenario(base_env_conf.env_settings, scen_conf, path_manager)
+        env = make_env_for_scenario(base_env_conf.env_settings, scen_conf, path_context)
         obs, _ = env.reset()
 
         # 采集循环

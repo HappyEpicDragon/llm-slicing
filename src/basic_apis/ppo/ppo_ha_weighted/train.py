@@ -4,7 +4,7 @@ import torch
 import pickle
 from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
 import gymnasium as gym
 from stable_baselines3 import PPO
@@ -19,7 +19,7 @@ from stable_baselines3.common.callbacks import (
 # Local Imports
 from src.basic_apis.ppo.ppo_ha_weighted.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.ppo.ppo_ha_weighted.agent_hierarchical import HierarchicalSmartPolicy
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
 
 
@@ -214,16 +214,69 @@ class HierarchicalDiagnosisCallback(BaseCallback):
         return True
 
 
+class TtiViolationRateCallback(BaseCallback):
+    """Per-TTI HP/NHP any-slice violation rates (for eval metrics)."""
+
+    def __init__(self, verbose=0):
+        super().__init__(verbose)
+        self.total = 0
+        self.hp_viol = 0
+        self.nhp_viol = 0
+
+    def _on_step(self) -> bool:
+        infos = self.locals.get("infos", [{}])
+        info = infos[0] if infos else {}
+        self.total += 1
+        slice_indices = set()
+        for k in info.keys():
+            if k.startswith("drift/slice_"):
+                suffix = k[len("drift/slice_"):]
+                idx_str = suffix.split("_")[0]
+                if idx_str.isdigit():
+                    slice_indices.add(int(idx_str))
+        hp_any = False
+        nhp_any = False
+        for s_idx in slice_indices:
+            if info.get(f"meta/slice_{s_idx}_active", 0) == 0:
+                continue
+            prio = info.get(f"meta/slice_{s_idx}_priority", 0)
+            viol = False
+            for metric in ["thr", "rel", "lat"]:
+                if info.get(f"meta/slice_{s_idx}_{metric}_req", 0) == 0:
+                    continue
+                drift = info.get(f"drift/slice_{s_idx}_{metric}", 0.0)
+                if drift < 0:
+                    viol = True
+                    break
+            if viol:
+                if prio > 0:
+                    hp_any = True
+                else:
+                    nhp_any = True
+        if hp_any:
+            self.hp_viol += 1
+        if nhp_any:
+            self.nhp_viol += 1
+        return True
+
+    def rates(self):
+        if self.total == 0:
+            return 0.0, 0.0
+        return self.hp_viol / self.total, self.nhp_viol / self.total
+
+
 # =========================================================================
 # 2. 核心训练接口
 # =========================================================================
-def make_env(cfg, path_manager, rank=0, seed=0):
+def make_env(cfg, path_context, rank=0, seed=0, reward_fn=None):
     def _init():
         env_config = cfg.env_settings if hasattr(cfg, 'env_settings') else cfg
         if 'env_settings' in cfg: env_config = cfg.env_settings
-        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_manager)
+        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_context)
         if hasattr(cfg, 'train_rl') and hasattr(cfg.train_rl, 'reward_weights'):
             env.reward_weights = cfg.train_rl.reward_weights
+        if reward_fn is not None:
+            env.compute_reward_fn = reward_fn
         env = Monitor(env)
         return env
 
@@ -292,9 +345,12 @@ class EntropyScheduleCallback(BaseCallback):
         return True
 
 
-def train(cfg: DictConfig, path_manager: PathManager):
+def train(cfg: DictConfig, path_context: PathContext, reward_fn=None, seed: Optional[int] = None):
     env_config = cfg.environment
-    seed = env_config.train_rl.seed
+    if seed is not None:
+        effective_seed = seed
+    else:
+        effective_seed = env_config.train_rl.seed
 
     mode = cfg.env_updates.mode
     env_config.env_settings.mode = mode
@@ -327,14 +383,14 @@ def train(cfg: DictConfig, path_manager: PathManager):
         print(f"[Asset] versioned run dir: {run_dir}")
 
     # 创建环境
-    env = DummyVecEnv([make_env(env_config, path_manager, rank=0, seed=seed)])
+    env = DummyVecEnv([make_env(env_config, path_context, rank=0, seed=effective_seed, reward_fn=reward_fn)])
 
     eval_env_config = env_config.copy()
     eval_env_config.env_settings.mode = 'evaluating'
     eval_env_config.env_settings[scenario_mode]['evaluating'].active_scenario_list = cfg.env_updates[scenario_mode][
         'evaluating'].active_scenario_list
 
-    eval_env = DummyVecEnv([make_env(eval_env_config, path_manager, rank=0, seed=seed + 1000)])
+    eval_env = DummyVecEnv([make_env(eval_env_config, path_context, rank=0, seed=effective_seed + 1000, reward_fn=reward_fn)])
     rl_cfg = cfg.environment.train_rl
 
     net_arch = dict(pi=OmegaConf.to_container(rl_cfg.network.pi_head),
@@ -370,7 +426,7 @@ def train(cfg: DictConfig, path_manager: PathManager):
         device=rl_cfg.device,
         verbose=1,
         policy_kwargs=policy_kwargs,
-        seed=seed
+        seed=effective_seed
     )
 
     print(f"✅ Model initialized with Hierarchical Attention Policy and Linear LR Schedule")
@@ -387,6 +443,9 @@ def train(cfg: DictConfig, path_manager: PathManager):
     callbacks.append(ConsoleLogCallback(print_freq=200))
     callbacks.append(PeriodicMetricsCallback(check_freq=1000))
     callbacks.append(HierarchicalDiagnosisCallback(check_freq=1000))
+
+    viol_cb = TtiViolationRateCallback()
+    callbacks.append(viol_cb)
 
     # [新增] 黄金缓冲池 (Threshold 可根据实际情况调整，例如 -5.0)
     golden_dir = str(Path(rl_cfg.saving.save_path) / "golden_buffer")
@@ -412,13 +471,17 @@ def train(cfg: DictConfig, path_manager: PathManager):
     env.close()
     eval_env.close()
 
-
+    hp_r, nhp_r = viol_cb.rates()
+    return {
+        "hp_violation_rate": float(hp_r),
+        "nhp_violation_rate": float(nhp_r),
+    }
 if __name__ == "__main__":
     config_path = "hierarchical_env.yaml"
     if os.path.exists(config_path):
         cfg = OmegaConf.load(config_path);
         work_dir = os.getcwd();
-        pm = PathManager(work_dir)
+        pm = PathContext(work_dir)
         train(cfg, pm)
     else:
         print(f"❌ Config file {config_path} not found.")

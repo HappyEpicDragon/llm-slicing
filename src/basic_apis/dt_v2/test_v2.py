@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 
 from src.basic_apis.dt_v2.env_v2 import HierarchicalSlicingEnvV2, INTER_DIM, INTRA_DIM
 from src.basic_apis.dt_v2.model_v2 import build_dt_v2
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.general_utils import pad_stack_tensor
 
 NUM_SLICES = 5
@@ -228,7 +228,7 @@ def main():
     print(f"Action dims: {action_dims} (total {act_dim})")
 
     env_cfg = OmegaConf.load("conf/environment/env_ha.yaml")
-    pm = PathManager(os.getcwd())
+    pm = PathContext(os.getcwd())
 
     all_results = {}
     for scen in args.scenarios:
@@ -308,7 +308,7 @@ def main():
                os.path.join(args.save_root, "global_summary.json"))
 
 
-def test_dt_v2(cfg, path_manager):
+def test_dt_v2(cfg, path_context):
     """Hydra entry point: called by channel_generality.py → test_dt_v2 mode.
 
     Uses cfg.test_dt_v2.  Episode range defaults from env_ha.yaml "testing"
@@ -353,7 +353,7 @@ def test_dt_v2(cfg, path_manager):
     print(f"[test_dt_v2] model loaded from {tc.model_path}")
 
     env_cfg_raw = OmegaConf.load("conf/environment/env_ha.yaml")
-    pm = path_manager
+    pm = path_context
 
     all_results = {}
     for scen in list(tc.test_scenarios):
@@ -431,7 +431,7 @@ def test_dt_v2(cfg, path_manager):
     )
 
 
-def test_dt_v2_tiny(cfg, path_manager):
+def test_dt_v2_tiny(cfg, path_context):
     """Hydra entry point: called by channel_generality.py → test_dt_v2_tiny mode."""
     # Reuse the exact same evaluation pipeline; tiny mode is pure config routing.
     class _CfgProxy:
@@ -439,7 +439,7 @@ def test_dt_v2_tiny(cfg, path_manager):
 
     cfg_proxy = _CfgProxy()
     cfg_proxy.test_dt_v2 = cfg.test_dt_v2_tiny
-    return test_dt_v2(cfg_proxy, path_manager)
+    return test_dt_v2(cfg_proxy, path_context)
 
 
 if __name__ == "__main__":

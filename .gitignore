@@ -15,6 +15,7 @@ docs/
 
 data/
 outputs/
+logs/
 
 # Python
 __pycache__/
@@ -29,3 +30,4 @@ __pycache__/
 *.ipynb
 
 
+reports/

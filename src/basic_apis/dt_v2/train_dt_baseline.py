@@ -314,7 +314,7 @@ def train(
     print(f"Training done. Final model: {final}")
 
 
-def train_hydra(cfg, path_manager):
+def train_hydra(cfg, path_context):
     """Hydra entry point: called by channel_generality.py -> train_dt_baseline mode."""
     tc = cfg.train_dt_baseline
     resume_from = str(tc.resume_from) if getattr(tc, "resume_from", None) else None

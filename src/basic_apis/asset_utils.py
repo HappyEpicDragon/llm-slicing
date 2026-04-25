@@ -34,6 +34,9 @@ def update_latest_symlink(root_dir: str, run_dir: str) -> str:
     if tmp_link.exists() or tmp_link.is_symlink():
         tmp_link.unlink()
     os.symlink(rel_target, tmp_link)
+    # os.replace 不能替换真实目录，需要先清理
+    if latest_link.is_dir() and not latest_link.is_symlink():
+        shutil.rmtree(str(latest_link))
     os.replace(tmp_link, latest_link)
     return str(latest_link)
 

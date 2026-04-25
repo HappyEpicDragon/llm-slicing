@@ -13,7 +13,7 @@ from pathlib import Path
 # === Local Imports ===
 from src.basic_apis.dt_baseline.model_baseline_dt import DecisionTransformerBaseline, BaselineStateEncoder
 from src.basic_apis.dt_baseline.dataset import BaselineDTDataset
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 # 复用 Ray 环境创建逻辑 (需要确保这些文件在路径中)
 from src.basic_apis.ppo.ppo_baseline.env_ray import env_creator
 
@@ -235,7 +235,7 @@ def evaluate_in_env_baseline(model, env, context_len, target_rtg_raw, rtg_scale,
 # 3. 主训练循环
 # ==============================================================================
 
-def train(cfg: DictConfig, path_manager: PathManager):
+def train(cfg: DictConfig, path_context: PathContext):
     dt_cfg = cfg.train_dt
     device = dt_cfg.device
     print(f"🚀 DT-Baseline Training Device: {device}")

@@ -7,7 +7,7 @@ from matplotlib.patches import FancyArrowPatch
 from scipy.interpolate import make_interp_spline
 from scipy.ndimage import gaussian_filter1d
 from omegaconf import OmegaConf
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.explainable_ai_utils.xai_utils import resolve_project_path
 
 
@@ -229,10 +229,10 @@ def plot_dt_aligned_labels(ax, z, labels, timesteps):
 # ===========================
 # 3. 主程序
 # ===========================
-def visualize(cfg, path_manager):
+def visualize(cfg, path_context):
     print("🎨 [Visualization] Generating Final Polished Plots...")
-    asset_dir = resolve_project_path(path_manager, cfg.asset_dir)
-    figure_dir = resolve_project_path(path_manager, cfg.output_dir)
+    asset_dir = resolve_project_path(path_context, cfg.asset_dir)
+    figure_dir = resolve_project_path(path_context, cfg.output_dir)
     os.makedirs(figure_dir, exist_ok=True)
 
     z_ppo, l_ppo, t_ppo, e_ppo = load_data(os.path.join(asset_dir, "ppo_data.npy"))
@@ -414,5 +414,5 @@ if __name__ == "__main__":
     if not os.path.exists(config_path): config_path = "semantic_manifold.yaml"
     if os.path.exists(config_path):
         cfg = OmegaConf.load(config_path)
-        pm = PathManager(os.getcwd())
+        pm = PathContext(os.getcwd())
         visualize(cfg, pm)

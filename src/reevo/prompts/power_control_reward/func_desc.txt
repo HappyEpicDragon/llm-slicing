@@ -1,0 +1,18 @@
+Design a scalar reward function for a discrete K-user interference-channel power-control PPO agent.
+
+Inputs:
+- `rates`: per-user achievable rates, shape `(K,)`, non-negative
+- `qos_violations`: fraction of users with `rate < R_min`, in `[0, 1]`
+- `jains_fairness`: Jain's fairness index, in `[0, 1]`
+
+Design goals:
+- encourage high sum-rate
+- strongly discourage QoS violations
+- discourage unfair allocations when fairness falls below the adaptive threshold `0.5 + 0.5 / K`
+
+Requirements:
+- return a single finite scalar
+- use only the provided inputs
+- avoid random state, file I/O, network I/O, or external dependencies beyond NumPy
+- keep the function concise and numerically stable
+

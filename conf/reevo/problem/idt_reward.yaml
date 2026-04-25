@@ -1,0 +1,6 @@
+problem_name: "idt_reward"
+problem_type: "black_box"
+obj_type: "min"
+func_name: "compute_reward"
+problem_size: "0"
+description: "Reward function design for O-RAN network slicing PPO agent"

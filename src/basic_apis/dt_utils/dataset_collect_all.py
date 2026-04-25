@@ -13,7 +13,7 @@ from omegaconf import OmegaConf
 # === Local Imports ===
 from src.basic_apis.ppo.ppo_ha_weighted.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.ppo.ppo_ha_weighted.agent_hierarchical import HierarchicalSmartPolicy
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 
 
 # =========================================================
@@ -47,8 +47,8 @@ def worker_collection_task(args):
     except Exception:
         pass
 
-    # 1. 重建 PathManager
-    pm = PathManager(pm_root)
+    # 1. 重建 PathContext
+    pm = PathContext(pm_root)
 
     # 2. 重建配置 & 强制覆盖场景
     # 将字典转回 OmegaConf 以便操作
@@ -174,9 +174,9 @@ def worker_collection_task(args):
 
 
 class RobustCollector:
-    def __init__(self, cfg, path_manager):
+    def __init__(self, cfg, path_context):
         self.cfg = cfg
-        self.path_manager = path_manager
+        self.path_context = path_context
 
         dt_cfg = cfg.dt_dataset_collect if 'dt_dataset_collect' in cfg else cfg
         self.output_dir = dt_cfg.output_path
@@ -246,7 +246,7 @@ class RobustCollector:
         else:
             env_cfg_dict = OmegaConf.to_container(self.cfg.environment, resolve=True)
 
-        pm_root = self.path_manager.hydra_workdir
+        pm_root = self.path_context.hydra_workdir
 
         print(f"🚀 Preparing tasks for {len(self.MODEL_ZOO)} Agents x {len(self.CROSS_SCENARIO_IDS)} Scenarios...")
 
@@ -567,8 +567,8 @@ def _merge_eval_to_train(output_dir):
 # =====================================================
 # Hydra 接口函数
 # =====================================================
-def collect(cfg, path_manager):
-    collector = RobustCollector(cfg, path_manager)
+def collect(cfg, path_context):
+    collector = RobustCollector(cfg, path_context)
 
     # 1. 并行海量收集 (Training & Evaluating 都会收集冗余数据)
     collector.collect_cross_scenarios_parallel()

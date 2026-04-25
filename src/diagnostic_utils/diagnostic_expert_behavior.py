@@ -5,11 +5,11 @@ Expert行为诊断工具
 
 import numpy as np
 from src.basic_apis.ppo.ppo_oneshot.global_slicing_env import GlobalSlicingEnv
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from omegaconf import OmegaConf
 
 
-def diagnose_expert(path_manager: PathManager):
+def diagnose_expert(path_context: PathContext):
     """诊断Expert在测试集上的行为"""
 
     # 加载配置
@@ -20,7 +20,7 @@ def diagnose_expert(path_manager: PathManager):
     environment_cfg.env_settings.inside.testing.active_scenario_list = [0]
 
     # 创建测试环境
-    env = GlobalSlicingEnv(env_settings=environment_cfg.env_settings, np_random=None, path_manager=path_manager)
+    env = GlobalSlicingEnv(env_settings=environment_cfg.env_settings, np_random=None, path_context=path_context)
 
     # 统计变量
     expert_stats = {
@@ -160,6 +160,8 @@ def diagnose_expert(path_manager: PathManager):
 
 
 if __name__ == "__main__":
-    path_manager = PathManager('/root/decision_transformer_slicing/outputs/runs/channel_generality/diagnostics')
-    path_manager.root_path = '/root/decision_transformer_slicing'
-    diagnose_expert(path_manager)
+    path_context = PathContext(
+        '/root/decision_transformer_slicing/outputs/runs/channel_generality/diagnostics',
+        project_root='/root/decision_transformer_slicing',
+    )
+    diagnose_expert(path_context)

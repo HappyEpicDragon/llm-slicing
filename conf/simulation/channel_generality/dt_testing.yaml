@@ -11,8 +11,8 @@ workdir: ${hydra:runtime.output_dir}
 dt_testing:
   # 模型权重文件的具体路径
   environment: ${environment}
-  # model_path: /root/decision_transformer_slicing/data/channel_generality/dt/model/latest/best_dt_model.pth
-  model_path: /root/decision_transformer_slicing/data/channel_generality/dt_multi_teacher/model/runs/20260328-164458/epoch_2.pth
+  # model_path: ${paths.channel_generality}/dt/model/latest/best_dt_model.pth
+  model_path: ${paths.channel_generality}/dt_multi_teacher/model/runs/20260328-164458/epoch_2.pth
   device: cuda
   use_viol_rtg: false
 
@@ -49,9 +49,9 @@ dt_testing:
   test_seeds: [0, 1, 2, 3, 4]
   save_results: true
   # 默认输出到 dt_fixed_rr；original DT 测试时覆盖为 dt
-  save_root: /root/decision_transformer_slicing/data/channel_generality/dt_multi_teacher
+  save_root: ${paths.channel_generality}/dt_multi_teacher
   clean_before_save: false
 
   dataset:
     rtg_scale: 100000.0
-    meta_path: /root/decision_transformer_slicing/data/channel_generality/dt_multi_teacher/dataset/metadata.json
+    meta_path: ${paths.channel_generality}/dt_multi_teacher/dataset/metadata.json

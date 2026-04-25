@@ -5,7 +5,7 @@ from copy import deepcopy
 
 from .components import UEs, Association, Basestations, Channel, Metrics, Mobility, Slices, Traffic, Buffer
 
-from .path_manager import PathManager
+from .path_context import PathContext
 
 
 @dataclass
@@ -198,12 +198,12 @@ class ComponentFactory:
          component_config: ComponentConfig,
          component_classes: ComponentClasses,
          np_random,
-         path_manager: PathManager = None
+         path_context: PathContext = None
         ):
         self.component_config = component_config
         self.component_classes = component_classes
         self.np_random = np_random
-        self.path_manager = path_manager
+        self.path_context = path_context
 
     def create_scenario_components(self,
                                    episode_number: int,
@@ -260,7 +260,7 @@ class ComponentFactory:
             self.component_config.basestation_config.max_number_basestations,
             self.component_config.slice_config.max_number_slices,
             self.np_random,
-            path_manager=self.path_manager,
+            path_context=self.path_context,
         )
 
     def _get_initial_associations(self, associations: Association,
@@ -314,7 +314,7 @@ class ComponentFactory:
         """创建信道组件"""
         return self.component_classes.ChannelClass(
             self.component_config.basestation_config.num_available_rbs,
-            path_manager=self.path_manager,
+            path_context=self.path_context,
         )
 
     def _create_traffic(self) -> Traffic:
@@ -326,7 +326,7 @@ class ComponentFactory:
 
     def _create_metrics(self) -> Metrics:
         """创建指标组件"""
-        return Metrics(self.path_manager)
+        return Metrics(self.path_context)
 
 
 

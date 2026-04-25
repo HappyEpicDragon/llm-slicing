@@ -11,7 +11,7 @@ from omegaconf import OmegaConf
 # === Local Imports ===
 from src.basic_apis.ppo.ppo_ha_weighted.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.ppo.ppo_ha_weighted.agent_hierarchical import HierarchicalSmartPolicy
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 
 
 def _save_json(data, path):
@@ -54,14 +54,14 @@ def _compute_step_metrics(info, num_slices=5):
     return hp_dist, nhp_dist, hp_viols, nhp_viols, hp_active, nhp_active
 
 
-def make_env(cfg, path_manager, rank=0, seed=0):
+def make_env(cfg, path_context, rank=0, seed=0):
     """H+A 环境工厂函数"""
 
     def _init():
         env_config = cfg.env_settings if hasattr(cfg, 'env_settings') else cfg
         if 'env_settings' in cfg:
             env_config = cfg.env_settings
-        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_manager)
+        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_context)
         return env
 
     return _init
@@ -77,7 +77,7 @@ def _load_model(model_path, env):
                         custom_objects={"HierarchicalSmartPolicy": HierarchicalSmartPolicy})
 
 
-def test_ppo_ha(cfg, path_manager):
+def test_ppo_ha(cfg, path_context):
     """H+A (PPO Discrete Teacher) 测试入口，支持 5 seeds × N 场景，保存标准 JSON。"""
     os.environ["OMP_NUM_THREADS"] = "1"
     torch.set_num_threads(1)
@@ -132,7 +132,7 @@ def test_ppo_ha(cfg, path_manager):
 
         for seed in test_seeds:
             print(f"  Seed {seed} / Scenario {scenario_id}")
-            env = DummyVecEnv([make_env(environment_cfg, path_manager, rank=0, seed=seed)])
+            env = DummyVecEnv([make_env(environment_cfg, path_context, rank=0, seed=seed)])
 
             model = _load_model(model_path, env)
             obs = env.reset()

@@ -9,7 +9,7 @@ workdir: ${hydra:runtime.output_dir}
 
 test_ppo_oneshot:
   environment: ${environment}
-  model_base_dir: /root/decision_transformer_slicing/data/channel_generality/ppo_oneshot/models/
+  model_base_dir: ${paths.channel_generality}/ppo_oneshot/models/
   env_updates:
     mode: testing
     scenario_mode: inside

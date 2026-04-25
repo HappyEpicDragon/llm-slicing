@@ -97,7 +97,7 @@ def _load_lagrangian_for_inference(model_path: str, device: str = 'cpu') -> Lagr
     return instance
 
 
-def test_ppo_lagrangian_baseline(cfg: DictConfig, path_manager):
+def test_ppo_lagrangian_baseline(cfg: DictConfig, path_context):
     """PPO-Lagrangian Baseline 测试主函数。"""
     test_cfg = cfg.test_ppo_lagrangian_baseline
 
@@ -140,7 +140,7 @@ def test_ppo_lagrangian_baseline(cfg: DictConfig, path_manager):
 
             # 构建 CommunicationEnv 配置（测试模式，覆盖 episode 范围）
             comm_env_cfg = _build_comm_env_cfg(
-                base_env_cfg, path_manager, [scenario_id], seed
+                base_env_cfg, path_context, [scenario_id], seed
             )
             # 切换为 testing 模式，并使用 ep 0–99
             comm_env_cfg['mode'] = 'testing'

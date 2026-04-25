@@ -293,7 +293,7 @@ def test_cql_discrete_scenario(
 ):
     """在单个场景+seed 上评测 CQL-v3，保存 summary.json + metric JSON。"""
     from omegaconf import OmegaConf
-    from src.basic_apis.network_slicing_business.path_manager import PathManager
+    from src.basic_apis.network_slicing_business.path_context import PathContext
     from src.basic_apis.dt_v2.env_v2 import HierarchicalSlicingEnvV2
 
     np.random.seed(seed)
@@ -309,8 +309,8 @@ def test_cql_discrete_scenario(
     env_settings[scenario_mode]["testing"]["active_scenario_list"] = [scenario_id]
 
     cfg_node = OmegaConf.create(env_settings)
-    path_manager = PathManager("./outputs/cql_v3_test")
-    env = HierarchicalSlicingEnvV2(cfg_node, np.random.default_rng(seed), path_manager)
+    path_context = PathContext("./outputs/cql_v3_test")
+    env = HierarchicalSlicingEnvV2(cfg_node, np.random.default_rng(seed), path_context)
 
     ep_rewards, ep_hp_viols, ep_nhp_viols = [], [], []
     ep_hp_dists, ep_nhp_dists = [], []
@@ -413,7 +413,7 @@ def test_cql_discrete_scenario(
 
 # ─── Hydra 入口 ──────────────────────────────────────────────────────────────
 
-def train(cfg, path_manager):
+def train(cfg, path_context):
     """train_cql_v3 模式的 Hydra 入口。"""
     tc = cfg.train_cql_v3
     seeds = list(tc.get("train_seeds", [0, 1, 2, 3, 4]))
@@ -437,7 +437,7 @@ def train(cfg, path_manager):
         )
 
 
-def test(cfg, path_manager):
+def test(cfg, path_context):
     """test_cql_v3 模式的 Hydra 入口。"""
     from omegaconf import OmegaConf
     tc = cfg.test_cql_v3

@@ -493,16 +493,16 @@ class DiagnosisCallback(BaseCallback):
         print(f"{'#' * 80}\n")
         return True
 
-def make_env(cfg, path_manager, rank=0, seed=None):
+def make_env(cfg, path_context, rank=0, seed=None):
     def _init():
-        env = GlobalSlicingEnv(cfg.env_settings, np.random.default_rng(seed + rank), path_manager)
+        env = GlobalSlicingEnv(cfg.env_settings, np.random.default_rng(seed + rank), path_context)
         env = Monitor(env, filename=None)
         return env
 
     return _init
 
 
-def train(cfg: DictConfig, path_manager):
+def train(cfg: DictConfig, path_context):
     env_config = cfg.environment
     seed = env_config.train_rl.algorithm.seed
 
@@ -515,7 +515,7 @@ def train(cfg: DictConfig, path_manager):
     env_config.env_settings[scenario_mode][mode].active_scenario_list = cfg.env_updates[scenario_mode][mode].active_scenario_list
 
     # 创建环境
-    env = DummyVecEnv([make_env(env_config, path_manager, rank=0, seed=seed)])
+    env = DummyVecEnv([make_env(env_config, path_context, rank=0, seed=seed)])
 
     eval_env_config = env_config.copy()
     eval_env_config.env_settings.mode = 'evaluating'
@@ -523,7 +523,7 @@ def train(cfg: DictConfig, path_manager):
         'evaluating'].active_scenario_list
 
 
-    eval_env = DummyVecEnv([make_env(eval_env_config, path_manager, rank=0, seed=seed + 1000)])
+    eval_env = DummyVecEnv([make_env(eval_env_config, path_context, rank=0, seed=seed + 1000)])
 
 
 

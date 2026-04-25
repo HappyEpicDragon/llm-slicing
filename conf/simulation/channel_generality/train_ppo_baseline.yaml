@@ -12,16 +12,16 @@ train_scenario: 4
 train_ppo_baseline:
   environment: ${environment}
   agent: ${agent}
-  hydra_workdir: /root/decision_transformer_slicing/data/channel_generality/ppo_baseline/checkpoints/scenario_${train_scenario}/latest
+  hydra_workdir: ${paths.channel_generality}/ppo_baseline/checkpoints/scenario_${train_scenario}/latest
   asset:
     use_versioned_runs: true
-    model_root: /root/decision_transformer_slicing/data/channel_generality/ppo_baseline/checkpoints/scenario_${train_scenario}
+    model_root: ${paths.channel_generality}/ppo_baseline/checkpoints/scenario_${train_scenario}
     run_id: auto
     clean_before_run: false
     update_latest: true
     skip_when_finetune: true
   enable_finetune: true
-  base_checkpoint_path: /root/decision_transformer_slicing/data/channel_generality/ppo_baseline/checkpoints/scenario_2/PPO_marl_comm_env_1fc0c_00000_0_2025-12-09_23-24-16/checkpoint_000045
+  base_checkpoint_path: ${paths.channel_generality}/ppo_baseline/checkpoints/scenario_2/PPO_marl_comm_env_1fc0c_00000_0_2025-12-09_23-24-16/checkpoint_000045
   env_updates:
     mode: training
     scenario_mode: inside

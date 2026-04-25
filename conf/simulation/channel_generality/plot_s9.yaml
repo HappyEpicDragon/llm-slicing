@@ -11,7 +11,7 @@ mode: plot
 workdir: ${hydra:runtime.output_dir}
 
 plot:
-  json_data_base_dir: "/root/decision_transformer_slicing/data/channel_generality"
+  json_data_base_dir: "${paths.channel_generality}"
   save_dir: ${workdir}
   plot_scenario_list: [9]
 

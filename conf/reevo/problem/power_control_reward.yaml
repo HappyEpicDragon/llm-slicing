@@ -1,0 +1,7 @@
+problem_name: "power_control_reward"
+problem_type: "white_box"
+obj_type: "min"
+func_name: "compute_reward"
+problem_size: "10"
+description: "Reward function design for discrete K-user interference-channel power control with QoS and Jain fairness constraints"
+

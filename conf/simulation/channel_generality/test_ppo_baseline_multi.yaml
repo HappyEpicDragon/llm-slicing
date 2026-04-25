@@ -15,8 +15,8 @@ test_ppo_baseline_multi:
 
   # 训练完成后，将此路径替换为实际的 checkpoint 目录
   # 例如: outputs/runs/channel_generality/train_ppo_baseline_across_scenario/2026-XX-XX/ray_results/ppo_baseline/
-  # checkpoint_path: /root/decision_transformer_slicing/data/channel_generality/ppo_baseline/checkpoints/scenario_all_5/
-  checkpoint_path: /root/decision_transformer_slicing/data/channel_generality/ppo_multi/checkpoints/scenario_0to4/latest/ray_results/ppo_baseline/
+  # checkpoint_path: ${paths.channel_generality}/ppo_baseline/checkpoints/scenario_all_5/
+  checkpoint_path: ${paths.channel_generality}/ppo_multi/checkpoints/scenario_0to4/latest/ray_results/ppo_baseline/
   metric_name: evaluation/env_runners/episode_return_mean
   mode: max
 

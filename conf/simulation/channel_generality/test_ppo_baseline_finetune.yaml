@@ -14,10 +14,10 @@ test_ppo_baseline_finetune:
   environment: ${environment}
   agent: ${agent}
   hydra_workdir: ${hydra:runtime.output_dir}
-  checkpoint_base_dir: /root/decision_transformer_slicing/data/channel_generality/ppo_baseline/checkpoints/
+  checkpoint_base_dir: ${paths.channel_generality}/ppo_baseline/checkpoints/
   # 约定：Step-1 训练迁移模型时，启用 versioned runs 并写入：
   # data/channel_generality/transfer_finetune/scenario_${test_scenario}/latest/ray_results/ppo_baseline
-  checkpoint_path: /root/decision_transformer_slicing/data/channel_generality/transfer_finetune/scenario_${test_scenario}/latest/ray_results/ppo_baseline
+  checkpoint_path: ${paths.channel_generality}/transfer_finetune/scenario_${test_scenario}/latest/ray_results/ppo_baseline
   metric_name: evaluation/env_runners/episode_return_mean
   mode: max
   test_ckp_idx: [ 0, 1, 2, 3, 4, 9, 14, 24, 49 ]

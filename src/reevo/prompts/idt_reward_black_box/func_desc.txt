@@ -1,0 +1,102 @@
+# Problem: Reward Function Design for O-RAN Network Slicing
+
+## System Overview
+
+You are designing a reward function for a reinforcement learning (PPO) agent that performs radio resource scheduling in an O-RAN network slicing system.
+
+The system serves S network slices (2 ≤ S ≤ 5). Each slice serves a group of User Equipments (UEs) and declares QoS intents on three metrics:
+- **Throughput** (thr): minimum required bit rate
+- **Reliability** (rel): maximum allowed packet loss rate
+- **Latency** (lat): maximum allowed buffer queuing latency
+
+Each slice is classified as either High-Priority (HP, is_hp=True) or Non-High-Priority (NHP, is_hp=False).
+
+At each Transmission Time Interval (TTI), the agent selects:
+1. An inter-slice resource allocation template (how many Resource Blocks each slice receives)
+2. A priority ordering among slices (which gets first pick of resources in contention)
+3. An intra-slice scheduling algorithm per slice (Round Robin / Proportional Fair / Max Throughput)
+
+A Hierarchical Execution Mechanism (HEM) translates these decisions into physical resource allocations via three phases: critical-user rescue, quota execution, and residual sweep.
+
+## Input Parameters
+
+All list inputs have length equal to num_active_slices, with indices aligned across lists.
+
+**slice_min_margins** (list of float, range [-1, 1]):
+  Per-slice worst-user composite fulfillment margin. Negative = SLA violated; positive = SLA satisfied.
+  Specifically: min over all active users and all three metrics of the per-user-per-metric fulfillment margin.
+
+**slice_mean_margins** (list of float, range [-1, 1]):
+  Per-slice average composite fulfillment margin across all active users and metrics.
+
+**slice_metric_margins** (list of dict):
+  Per-slice, per-metric mean fulfillment margin. Keys: "thr", "rel", "lat". Each value in [-1, 1].
+  Example: [{"thr": 0.3, "rel": -0.1, "lat": 0.5}, ...]
+
+**is_hp** (list of bool):
+  True if the slice is High-Priority, False if Non-High-Priority.
+
+**num_active_slices** (int):
+  Number of active slices in the current TTI (equals len(slice_min_margins)).
+
+**prev_min_margins** (list of float, range [-1, 1]):
+  slice_min_margins from the previous TTI. All zeros at the start of each episode.
+
+**prev_mean_margins** (list of float, range [-1, 1]):
+  slice_mean_margins from the previous TTI. All zeros at the start of each episode.
+
+**slice_mean_buffer_occ** (list of float, range [0, 1]):
+  Per-slice average buffer occupancy across all UEs in the slice. 0 = empty, 1 = full.
+
+**slice_max_buffer_occ** (list of float, range [0, 1]):
+  Per-slice maximum buffer occupancy across all UEs in the slice. Values near 1.0 indicate imminent packet drops.
+
+## Output
+
+A single float scalar reward. The PPO agent maximizes the cumulative sum of rewards over an episode.
+
+## Evaluation Metric
+
+The reward function is evaluated by training a PPO agent and measuring:
+- HP violation rate: fraction of TTIs where any HP slice has negative margin
+- NHP violation rate: fraction of TTIs where any NHP slice has negative margin
+- Fitness = 10 * HP_violation_rate + NHP_violation_rate (lower is better)
+
+## Current Baseline Performance
+
+The current human-designed baseline achieves:
+- HP violation rate: 0.0%
+- NHP violation rate: ~1.36%
+- Fitness: ~0.0136
+
+## Current Baseline Implementation
+
+```python
+def compute_reward(slice_min_margins, slice_mean_margins, slice_metric_margins,
+                   is_hp, num_active_slices, prev_min_margins, prev_mean_margins,
+                   slice_mean_buffer_occ, slice_max_buffer_occ):
+    import numpy as np
+    if num_active_slices == 0:
+        return 0.0
+    slice_scores = np.array(slice_min_margins)
+    slice_priorities = np.array([1 if hp else 0 for hp in is_hp])
+    capped_scores = np.where(slice_scores > 0, slice_scores * 0.2, slice_scores)
+    hp_penalty = 0.0
+    hp_mask = (slice_scores < 0) & (slice_priorities > 0)
+    if np.any(hp_mask):
+        hp_penalty = -10.0 - np.sum(np.exp(np.abs(slice_scores[hp_mask]) * 2.0))
+    min_score = np.min(capped_scores)
+    base = min_score * 2.0 if min_score < 0 else float(np.mean(capped_scores))
+    max_buf = np.array(slice_max_buffer_occ)
+    risk_loss = np.sum(np.exp(max_buf[max_buf > 0.8] * 5.0)) if np.any(max_buf > 0.8) else 0.0
+    risk_penalty = -0.2 * risk_loss
+    return float(base + hp_penalty + risk_penalty)
+```
+
+Note: The output is clamped to [-10, 10] by the environment before being used for training. Design your function to output values in a reasonable range.
+
+## Critical Implementation Constraints
+
+1. **Convert all list inputs to numpy arrays** before boolean indexing. Never use a numpy boolean array to index a Python list — this causes TypeError.
+2. **Guard against empty selections**: when filtering with a boolean mask (e.g., `arr[mask]`), the result may be empty. Always check `np.sum(mask) > 0` or use a default value before calling `np.mean()`, `np.min()`, etc. on the filtered result, to avoid NaN from empty arrays.
+3. **Handle edge cases**: `is_hp` may be all True (no NHP slices) or all False (no HP slices). Your function must return a finite float in both cases.

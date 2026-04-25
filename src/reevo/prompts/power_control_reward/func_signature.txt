@@ -1,0 +1,5 @@
+```python
+def compute_reward(rates: np.ndarray, qos_violations: float, jains_fairness: float) -> float:
+    ...
+```
+

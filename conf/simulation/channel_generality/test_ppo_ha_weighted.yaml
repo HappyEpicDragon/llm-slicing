@@ -9,7 +9,7 @@ workdir: ${hydra:runtime.output_dir}
 
 test_ppo_ha_weighted:
   environment: ${environment}
-  model_path: /root/decision_transformer_slicing/data/channel_generality/ppo_ha_weighted/models/scenario_0to4/latest/best_model/best_model.zip
+  model_path: ${paths.channel_generality}/ppo_ha_weighted/models/scenario_0to4/latest/best_model/best_model.zip
 
   # 多种子 × 多场景配置（5 seeds × 5 testing scenarios）
   test_seeds: [0, 1, 2, 3, 4]

@@ -57,7 +57,7 @@ number_scenarios: 1
 scenarios_skip_episodes: 100
 agent: ppo_baseline
 agent_class: src.basic_apis.ppo.ppo_baseline.agent_ib_sched.IBSched
-path_manager_class: src.basic_apis.network_slicing_business.path_manager.PathManager
+path_context_class: src.basic_apis.network_slicing_business.path_context.PathContext
 rl: true
 enable_finetune: false
 env_settings:

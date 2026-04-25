@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm
 
 from src.basic_apis.dt_utils.model_ha_dt import HierarchicalStateEncoder, DecisionTransformer
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 from src.basic_apis.general_utils import pad_stack_tensor
 from src.basic_apis.explainable_ai_utils.xai_utils import ACTION_DIMS, make_env_for_scenario, resolve_project_path
 
@@ -27,7 +27,7 @@ def extract_dt_embedding(model, obs, device):
     return embedding.cpu().numpy()
 
 
-def run_dt_collection(cfg, path_manager):
+def run_dt_collection(cfg, path_context):
     """
     语义流形对齐实验 - GRRM-DT 数据采集入口
     """
@@ -35,7 +35,7 @@ def run_dt_collection(cfg, path_manager):
     print(f"    Model Path: {cfg.model_paths.dt}")
 
     # 1. 准备工作
-    save_dir = resolve_project_path(path_manager, cfg.asset_dir)
+    save_dir = resolve_project_path(path_context, cfg.asset_dir)
     os.makedirs(save_dir, exist_ok=True)
 
     base_env_conf = cfg.environment
@@ -75,7 +75,7 @@ def run_dt_collection(cfg, path_manager):
     for key, scen_conf in cfg.target_scenarios.items():
         print(f"👉 Processing {scen_conf.name} (Scenario {scen_conf.scenario_id})...")
 
-        env = make_env_for_scenario(base_env_conf.env_settings, scen_conf, path_manager)
+        env = make_env_for_scenario(base_env_conf.env_settings, scen_conf, path_context)
         obs, _ = env.reset()
 
         # === 初始化推理上下文 Buffer ===

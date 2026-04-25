@@ -30,9 +30,9 @@ class LagrangianAugmentedEnv(gym.Env):
     lagrangian 对象在训练过程中持续更新 λ，包装层每步都读取最新的 λ。
     """
 
-    def __init__(self, env_settings, np_random, path_manager, lagrangian: "LagrangianPPO"):
+    def __init__(self, env_settings, np_random, path_context, lagrangian: "LagrangianPPO"):
         super().__init__()
-        self._env = HierarchicalSlicingEnvV2(env_settings, np_random, path_manager)
+        self._env = HierarchicalSlicingEnvV2(env_settings, np_random, path_context)
         self.lagrangian = lagrangian
         self.observation_space = self._env.observation_space
         self.action_space = self._env.action_space
@@ -54,7 +54,7 @@ class LagrangianAugmentedEnv(gym.Env):
         return self._env.render(mode)
 
 
-def train_ppo_lagrangian(cfg: DictConfig, path_manager):
+def train_ppo_lagrangian(cfg: DictConfig, path_context):
     """Lagrangian PPO 训练主函数"""
     train_cfg = cfg.train_ppo_lagrangian
 
@@ -130,7 +130,7 @@ def train_ppo_lagrangian(cfg: DictConfig, path_manager):
             return LagrangianAugmentedEnv(
                 OC.create(env_s),
                 np.random.default_rng(rng_seed),
-                path_manager,
+                path_context,
                 lagrangian,
             )
         return _init

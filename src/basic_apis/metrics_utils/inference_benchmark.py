@@ -194,7 +194,7 @@ def _benchmark_cql(model_path: str, obs_dim: int = 45, device: str = 'cpu') -> d
         return {"method": "CQL [37]", "status": f"error: {e}"}
 
 
-def inference_benchmark(cfg: DictConfig, path_manager):
+def inference_benchmark(cfg: DictConfig, path_context):
     """推理时间基准测试主入口（channel_generality.py 调用）"""
     bench_cfg = cfg.get('inference_benchmark', cfg)
     device = str(bench_cfg.get('device', 'cpu'))

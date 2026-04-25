@@ -108,11 +108,11 @@ def test_cql_scenario(
         env_settings[scenario_mode][mode]['max_scenario_episodes'] = max_episode
 
     from omegaconf import OmegaConf
-    from src.basic_apis.network_slicing_business.path_manager import PathManager
+    from src.basic_apis.network_slicing_business.path_context import PathContext
 
     cfg_node = OmegaConf.create(env_settings)
-    path_manager = PathManager("./outputs/cql_test")
-    env = HierarchicalSlicingEnv(cfg_node, np.random.default_rng(seed), path_manager)
+    path_context = PathContext("./outputs/cql_test")
+    env = HierarchicalSlicingEnv(cfg_node, np.random.default_rng(seed), path_context)
 
     ep_rewards, ep_hp_viols, ep_nhp_viols = [], [], []
     ep_hp_dists, ep_nhp_dists = [], []

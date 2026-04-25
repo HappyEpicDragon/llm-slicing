@@ -1,0 +1,44 @@
+# @package _global_
+
+# Environment configuration for power control
+environment:
+  K: 10  # Number of base stations
+  N: 10  # Number of users (must equal K for K-user IC)
+  R_defined: 400.0  # Cell radius (m)
+  min_dist: 35.0  # Minimum UE-BS distance (m)
+  P_max: 6.31  # Maximum power per user (W), 8 dBW
+  R_min: 1.0  # Minimum rate requirement (bps/Hz)
+  n_power_levels: 10  # Number of discrete power levels
+  noise_var: 3.98e-15  # Noise power (W), -144 dBm
+  shadowing_dev: 10.0  # Shadowing std dev (dB)
+  dcor: 10.0  # Shadowing decorrelation distance (m)
+  fd: 10.0  # Doppler frequency (Hz)
+  T: 0.02  # Time step (s)
+  episode_length: 1000  # Steps per episode
+  seed: 42
+
+# PPO hyperparameters
+ppo:
+  learning_rate: 3.0e-4
+  n_steps: 2048
+  batch_size: 64
+  n_epochs: 10
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.01
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+
+# Training configuration
+training:
+  total_timesteps: 1000000
+  n_eval_episodes: 10
+  eval_freq: 10000
+  save_freq: 50000
+  verbose: 1
+
+# Paths
+paths:
+  models: ${paths.power_control_models}
+  results: ${paths.power_control_results}

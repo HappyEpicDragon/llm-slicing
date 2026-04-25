@@ -12,21 +12,21 @@ from omegaconf import OmegaConf
 # Local Imports (保持与你现有项目结构一致)
 from src.basic_apis.ppo.ppo_ha.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.ppo.ppo_ha.agent_hierarchical import HierarchicalSmartPolicy
-from src.basic_apis.network_slicing_business.path_manager import PathManager
+from src.basic_apis.network_slicing_business.path_context import PathContext
 
 
-def make_env(cfg, path_manager, rank=0, seed=0):
+def make_env(cfg, path_context, rank=0, seed=0):
     def _init():
         env_config = cfg.env_settings if hasattr(cfg, 'env_settings') else cfg
         if 'env_settings' in cfg:
             env_config = cfg.env_settings
-        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_manager)
+        env = HierarchicalSlicingEnv(env_config, np.random.default_rng(seed + rank), path_context)
         return env
 
     return _init
 
 
-def diagnose_agent(cfg, path_manager, model_path, output_csv="diagnosis_report.csv"):
+def diagnose_agent(cfg, path_context, model_path, output_csv="diagnosis_report.csv"):
     # 1. 配置环境为 Testing 模式，覆盖所有场景
     scenario_mode = cfg.env_settings.scenario_mode
     mode = 'testing'
@@ -36,7 +36,7 @@ def diagnose_agent(cfg, path_manager, model_path, output_csv="diagnosis_report.c
     test_cfg = cfg.env_settings[scenario_mode][mode]
     print(f"🔬 Starting Diagnosis on {test_cfg.max_scenario_episodes - test_cfg.init_scenario_episode} Episodes...")
 
-    env = DummyVecEnv([make_env(cfg, path_manager, rank=0, seed=42)])
+    env = DummyVecEnv([make_env(cfg, path_context, rank=0, seed=42)])
 
     # 2. 加载模型
     print(f"📥 Loading Model: {model_path}")
@@ -199,8 +199,7 @@ if __name__ == "__main__":
         cfg.env_settings.inside.testing.active_scenario_list = [0]
         cfg.env_settings.model_name = 'diagnostic'
         work_dir = './diagnostic'
-        pm = PathManager(work_dir)
-        pm.root_path = '/root/decision_transformer_slicing'
+        pm = PathContext(work_dir, project_root='/root/decision_transformer_slicing')
         diagnose_agent(cfg, pm, model_path)
     else:
         print("Config not found.")

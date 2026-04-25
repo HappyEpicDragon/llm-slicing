@@ -1,7 +1,0 @@
-Scanning source pools...
-Traceback (most recent call last):
-  File "/root/decision_transformer_slicing/scripts/build_all_datasets.py", line 168, in <module>
-    main()
-  File "/root/decision_transformer_slicing/scripts/build_all_datasets.py", line 139, in main
-    assert n >= TRAJ_PER_SCEN, \
-TypeError: '>=' not supported between instances of 'int' and 'NoneType'

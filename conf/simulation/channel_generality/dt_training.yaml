@@ -19,7 +19,7 @@ dt_training:
 
     # --- 数据集 ---
     dataset:
-      base_dir: /root/decision_transformer_slicing/data/channel_generality/dt/dataset/
+      base_dir: ${paths.channel_generality}/dt/dataset/
       train_path: training
       val_path: evaluating
       meta_path: metadata.json
@@ -46,12 +46,12 @@ dt_training:
 
     # --- 保存与日志 ---
     saving:
-      save_path: /root/decision_transformer_slicing/data/channel_generality/dt/model/latest
+      save_path: ${paths.channel_generality}/dt/model/latest
       save_best_only: true
       log_interval: 10
       asset:
         use_versioned_runs: true
-        model_root: /root/decision_transformer_slicing/data/channel_generality/dt/model
+        model_root: ${paths.channel_generality}/dt/model
         run_id: auto
         clean_before_run: false
         update_latest: true
