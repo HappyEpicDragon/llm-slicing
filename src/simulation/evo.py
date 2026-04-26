@@ -75,10 +75,8 @@ class EvoSimulator(BaseSimulation):
         problem_name = reevo_cfg.problem.problem_name
         problem_type = reevo_cfg.problem.problem_type
         ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        output_dir = os.path.join(
-            project_root, "outputs", "reevo",
-            f"{problem_name}-{problem_type}", ts,
-        )
+        reevo_outputs = str(self.cfg.get("paths", {}).get("reevo_outputs", os.path.join(project_root, "outputs", "runs", "reevo")))
+        output_dir = os.path.join(reevo_outputs, f"{problem_name}-{problem_type}", ts)
         os.makedirs(output_dir, exist_ok=True)
 
         # 设置 eval 子进程所需的环境变量

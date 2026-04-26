@@ -1,24 +1,16 @@
 # @package _global_
 
 defaults:
-  - /environment: env_psjra
-  - /agent: ray_agent
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/groups/plot_common
+  - _self_
 
-name: channel_generality
 mode: plot
-workdir: ${hydra:runtime.output_dir}
 
 plot:
-  json_data_base_dir: "${paths.channel_generality}"
-  save_dir: ${workdir}
   plot_scenario_list: [5, 6, 7, 8, 9]
   baselines:
     - ppo_baseline
     - ppo_ha_weighted
     - dt
     - dt_baseline
-
-
-  metrics:
-    - normalized_distance_fulfill_cumsum
-    - normalized_violations_per_episode_cumsum

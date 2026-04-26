@@ -1,20 +1,18 @@
 # @package _global_
 
 defaults:
-  - /environment: env_psjra
-  - /agent: ray_agent
+  - /simulation/channel_generality/_base
+  - _self_
 
-name: channel_generality
 mode: plot_sensitivity
-workdir: ${hydra:runtime.output_dir}
 
 # 参数：修改本块可调整敏感性数据路径与输出路径
 plot_sensitivity:
-  ctx_data_root: data/channel_generality
+  ctx_data_root: ${paths.channel_generality}
   ctx_lengths: [5, 10, 20, 30, 50]
   current_ctx: 20
-  ctx_save_path: outputs/figures/channel_generality/sensitivity/context_sensitivity
-  ds_data_root: data/channel_generality
+  ctx_save_path: ${paths.figures_root}/channel_generality/sensitivity/context_sensitivity
+  ds_data_root: ${paths.channel_generality}
   dataset_ratios: [0.1, 0.3, 0.5, 1.0]
-  ds_save_path: outputs/figures/channel_generality/sensitivity/dataset_sensitivity
-  combined_save_path: outputs/figures/channel_generality/sensitivity/combined_sensitivity
+  ds_save_path: ${paths.figures_root}/channel_generality/sensitivity/dataset_sensitivity
+  combined_save_path: ${paths.figures_root}/channel_generality/sensitivity/combined_sensitivity

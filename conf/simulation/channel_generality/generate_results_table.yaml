@@ -1,16 +1,14 @@
 # @package _global_
 
 defaults:
-  - /environment: env_psjra
-  - /agent: ray_agent
+  - /simulation/channel_generality/_base
+  - _self_
 
-name: channel_generality
 mode: generate_results_table
-workdir: ${hydra:runtime.output_dir}
 
 # 参数：修改本块可调整数据源与输出路径
 generate_results_table:
-  data_root: data/channel_generality
-  save_dir: outputs/tables/channel_generality
+  data_root: ${paths.channel_generality}
+  save_dir: ${paths.tables_root}/channel_generality
   scenario_ids: [5, 6, 7, 8, 9]
   # method_keys 默认与 METHOD_ORDER 一致，如需消融表可在此扩展

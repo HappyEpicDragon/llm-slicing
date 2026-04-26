@@ -1,0 +1,32 @@
+# @package _global_
+# Evaluate a trained DT teacher PPO model on held-out episodes (ep 60-79, "testing" mode).
+# Run: pixi run sim channel_generality/test_dt_teacher \
+#        test_dt_teacher.model_path=<path> test_dt_teacher.test_scenarios=[5,6,7,8,9]
+
+defaults:
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/ha_only
+  - _self_
+
+mode: test_dt_teacher
+
+test_dt_teacher:
+  environment: ${environment}
+
+  model_path: ${paths.channel_generality}/dt_mean_rwd/ppo_s0/best_model/best_model.zip
+  extractor: mlp
+
+  test_scenarios: [0, 1, 2, 3, 4]   # override for generalization: [5,6,7,8,9]
+  test_seeds: [0, 1, 2, 3, 4]
+  n_episodes: 20                     # episodes per seed per scenario
+  # OOD episode range override (null = use env_ha.yaml defaults: ep 60-79)
+  init_episode: null
+  max_episode: null
+  device: cuda
+
+  save_root: ${paths.channel_generality}/dt_mean_rwd
+  save_metric_key: ppo_s0_eval
+
+  env_updates:
+    mode: testing
+    scenario_mode: inside

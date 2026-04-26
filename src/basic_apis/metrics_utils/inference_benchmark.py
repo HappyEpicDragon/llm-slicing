@@ -78,9 +78,9 @@ def get_model_size_mb(model_path: str) -> float:
 
 def _benchmark_idt(cfg, device: str = 'cpu') -> dict:
     """测量 IDT 推理延迟"""
-    from src.basic_apis.dt_utils.model_ha_dt import HierarchicalStateEncoder, build_decision_model
-    from src.basic_apis.dt_utils.action_dims import resolve_action_dims_from_env_cfg
-    from src.basic_apis.general_utils import pad_stack_tensor
+    from src.basic_apis.dt.legacy_model import HierarchicalStateEncoder, build_decision_model
+    from src.basic_apis.dt.action_dims import resolve_action_dims_from_env_cfg
+    from src.basic_apis.utils.tensors import pad_stack_tensor
 
     dt_cfg = cfg.get('dt_testing', cfg)
     model_path = str(dt_cfg.get('model_path', ''))

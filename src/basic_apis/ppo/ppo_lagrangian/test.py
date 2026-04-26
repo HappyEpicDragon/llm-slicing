@@ -14,7 +14,7 @@ import numpy as np
 import torch
 from omegaconf import DictConfig
 
-from src.basic_apis.dt_v2.env_v2 import HierarchicalSlicingEnvV2
+from src.basic_apis.dt.env import HierarchicalSlicingEnvV2
 from src.basic_apis.ppo.ppo_lagrangian.lagrangian_ppo import LagrangianPPO
 from src.basic_apis.ppo.ppo_lagrangian.obs_dim_utils import lagrangian_flat_obs_dim_v2
 
@@ -102,8 +102,8 @@ def test_ppo_lagrangian(cfg: DictConfig, paths_cfg=None, workdir=None):
     model_seed_cfg = test_cfg.get('model_seed', None)
     model_seed = int(model_seed_cfg) if model_seed_cfg is not None else None
     n_episodes = int(test_cfg.get('n_episodes', 5))
-    model_root = str(test_cfg.get('model_root', 'data/channel_generality/ppo_lagrangian_v2/models'))
-    save_root = str(test_cfg.get('save_root', 'data/channel_generality/ppo_lagrangian_v2'))
+    model_root = str(test_cfg.get('model_root', 'data/channel_generality/ppo_lagrangian/models'))
+    save_root = str(test_cfg.get('save_root', 'data/channel_generality/ppo_lagrangian'))
     prefer_latest = bool(test_cfg.get('prefer_latest', True))
     strict_model_check = bool(test_cfg.get('strict_model_check', True))
     clean_before_save = bool(test_cfg.get('clean_before_save', False))

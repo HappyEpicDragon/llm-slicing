@@ -1,0 +1,11 @@
+# @package _global_
+
+defaults:
+  - /simulation/channel_generality/_base
+  - _self_
+
+mode: analyze_assoc_data
+
+analyze_assoc_data:
+  base_dir: ${paths.association_root}
+  eps_list: [5] # [5, 6, 7, 8, 9]

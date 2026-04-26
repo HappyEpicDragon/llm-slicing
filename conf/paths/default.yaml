@@ -1,5 +1,8 @@
 project_root: ${oc.env:LLM_SLICING_ROOT,/root/llm_slicing}
 data_root: ${paths.project_root}/data
+outputs_root: ${paths.project_root}/outputs
+figures_root: ${paths.outputs_root}/figures
+tables_root: ${paths.outputs_root}/tables
 static_root: ${paths.data_root}/static
 association_root: ${paths.static_root}/association
 channel_root: ${paths.static_root}/channel
@@ -12,5 +15,5 @@ channel_generality: ${paths.data_root}/channel_generality
 # 演化搜索相关路径
 evo_model_root: ${paths.channel_generality}/ppo_ha_weighted_evo/models
 evo_proxy_root: ${paths.channel_generality}/ppo_ha_weighted_evo/proxy
-reevo_outputs: ${paths.project_root}/outputs/reevo
+reevo_outputs: ${paths.outputs_root}/runs/reevo
 evolution_curve: ${paths.channel_generality}/evolution_curve

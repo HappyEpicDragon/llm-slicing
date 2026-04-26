@@ -20,7 +20,7 @@
 #     HATCHES = ['//', '..', '\\\\', '']
 #
 #     JSON_DIR = "./data/channel_generality"
-#     SAVE_DIR = "./plots/bar_charts_final"
+#     SAVE_DIR = "./outputs/figures/channel_generality/cross_scenario"
 #
 #     METRIC_MAPPING = {
 #         'distance': 'normalized_distance_fulfill_cumsum',
@@ -267,7 +267,7 @@ class PlotConfig:
     HATCHES = ['//', '||', '\\\\', '--', '']
 
     JSON_DIR = "./data/channel_generality"
-    SAVE_DIR = "./plots/bar_charts_final"
+    SAVE_DIR = "./outputs/figures/channel_generality/cross_scenario"
 
     # 指标文件名（新格式：seed 级目录下）
     METRIC_FILES = {

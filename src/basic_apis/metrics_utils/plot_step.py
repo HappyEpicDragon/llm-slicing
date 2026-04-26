@@ -19,8 +19,8 @@ class Config:
 
     # 路径配置
     data_base_dir = "./data/channel_generality"
-    save_json_dir = "./data/metric_json_step_level"
-    save_plot_dir = "./plots/step_level_plots"
+    save_json_dir = "./data/channel_generality/metric_json_step_level"
+    save_plot_dir = "./outputs/figures/channel_generality/step_level_plots"
 
     # 算法与场景
     baselines = ["ppo_baseline", "ppo_ha_weighted", "dt_baseline", "dt"]

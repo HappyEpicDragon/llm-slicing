@@ -156,7 +156,7 @@ def plot_transfer_curve_from_cfg(cfg=None):
     # 加载各场景的适配曲线数据
     data_root = str(tc_cfg.get('data_root', 'data/channel_generality/transfer_ppo'))
     idt_root = str(tc_cfg.get('idt_root', 'data/channel_generality/dt'))
-    save_path = str(tc_cfg.get('save_path', 'plots/transfer_curve'))
+    save_path = str(tc_cfg.get('save_path', 'outputs/figures/channel_generality/transfer/fig7_transfer_curve'))
     metric = str(tc_cfg.get('metric', 'mean_return'))
     target_scenarios = list(tc_cfg.get('target_scenarios', [7, 9]))
     steps_per_ckp = int(tc_cfg.get('steps_per_ckp', 100))

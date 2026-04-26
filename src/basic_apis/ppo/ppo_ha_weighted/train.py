@@ -19,7 +19,7 @@ from stable_baselines3.common.callbacks import (
 # Local Imports
 from src.basic_apis.ppo.ppo_ha_weighted.hierarchical_slicing_env import HierarchicalSlicingEnv
 from src.basic_apis.ppo.ppo_ha_weighted.agent_hierarchical import HierarchicalSmartPolicy
-from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
+from src.basic_apis.utils.assets import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
 
 
 # =========================================================================

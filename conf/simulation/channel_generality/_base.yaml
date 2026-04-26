@@ -1,0 +1,4 @@
+# @package _global_
+
+name: channel_generality
+workdir: ${hydra:runtime.output_dir}

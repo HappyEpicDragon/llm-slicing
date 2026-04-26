@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - /environment: single_scenario_env
+  - /agent: ray_agent
+  - _self_

@@ -239,14 +239,14 @@ def plot_sensitivity_from_cfg(cfg=None):
     ctx_root = str(s_cfg.get('ctx_data_root', 'data/channel_generality'))
     ctx_lengths = list(s_cfg.get('ctx_lengths', [5, 10, 20, 30, 50]))
     current_ctx = int(s_cfg.get('current_ctx', 20))
-    ctx_save = str(s_cfg.get('ctx_save_path', 'plots/sensitivity/context_sensitivity'))
+    ctx_save = str(s_cfg.get('ctx_save_path', 'outputs/figures/channel_generality/sensitivity/context_sensitivity'))
 
     # Dataset Size 数据
     ds_root = str(s_cfg.get('ds_data_root', 'data/channel_generality'))
     ratios = list(s_cfg.get('dataset_ratios', [0.1, 0.3, 0.5, 1.0]))
-    ds_save = str(s_cfg.get('ds_save_path', 'plots/sensitivity/dataset_sensitivity'))
+    ds_save = str(s_cfg.get('ds_save_path', 'outputs/figures/channel_generality/sensitivity/dataset_sensitivity'))
 
-    combined_save = str(s_cfg.get('combined_save_path', 'plots/sensitivity/combined_sensitivity'))
+    combined_save = str(s_cfg.get('combined_save_path', 'outputs/figures/channel_generality/sensitivity/combined_sensitivity'))
 
     ctx_rm, ctx_rs, ctx_vm, ctx_vs = load_sensitivity_data(
         ctx_root.replace("{x}", "{x}"), ctx_lengths

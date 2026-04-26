@@ -5,7 +5,7 @@
     pixi run python src/basic_apis/metrics_utils/plot_s9_multiseed.py \
         --scenario 9 --seeds 0 1 2 3 4 \
         --methods ppo_ha_weighted dt_baseline dt \
-        --outdir outputs/plots_s9
+        --outdir outputs/figures/channel_generality/diagnostic
 """
 
 import argparse
@@ -261,7 +261,7 @@ def plot_multiseed_from_cfg(cfg):
     # 兼容 model_keys（手册命名）与 methods（脚本命名）
     methods  = list(plot_cfg.get("methods", plot_cfg.get("model_keys", ["ppo_ha_weighted", "dt_baseline", "dt"])))
     # 兼容 output_dir（手册命名）与 outdir（脚本命名）
-    outdir   = str(plot_cfg.get("outdir", plot_cfg.get("output_dir", "outputs/plots_s9")))
+    outdir   = str(plot_cfg.get("outdir", plot_cfg.get("output_dir", "outputs/figures/channel_generality/diagnostic")))
     print(f"Plotting scenario={scenario}, seeds={seeds}, methods={methods}, outdir={outdir}")
     make_comparison_plot(methods, scenario, seeds, outdir)
 
@@ -276,7 +276,7 @@ def plot_step_multiseed_from_cfg(cfg):
         scenario = int(plot_cfg.get("scenario", 9))
     seeds    = list(plot_cfg.get("seeds",   [0, 1, 2, 3, 4]))
     methods  = list(plot_cfg.get("methods", plot_cfg.get("model_keys", ["ppo_ha_weighted", "dt_baseline", "dt"])))
-    outdir   = str(plot_cfg.get("outdir", plot_cfg.get("output_dir", "outputs/plots_s9")))
+    outdir   = str(plot_cfg.get("outdir", plot_cfg.get("output_dir", "outputs/figures/channel_generality/temporal")))
     print(f"Step-level plots: scenario={scenario}, seeds={seeds}, methods={methods}, outdir={outdir}")
     make_step_level_plots(methods, scenario, seeds, outdir)
 
@@ -287,7 +287,7 @@ def main():
     parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     parser.add_argument("--methods", nargs="+",
                         default=["ppo_ha_weighted", "dt_baseline", "dt"])
-    parser.add_argument("--outdir", default="outputs/plots_s9")
+    parser.add_argument("--outdir", default="outputs/figures/channel_generality/diagnostic")
     args = parser.parse_args()
 
     print(f"Plotting scenario={args.scenario}, seeds={args.seeds}, methods={args.methods}")

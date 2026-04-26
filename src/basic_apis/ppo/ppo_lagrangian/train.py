@@ -18,10 +18,10 @@ import numpy as np
 import torch
 from omegaconf import DictConfig, OmegaConf
 
-from src.basic_apis.dt_v2.env_v2 import HierarchicalSlicingEnvV2
+from src.basic_apis.dt.env import HierarchicalSlicingEnvV2
 from src.basic_apis.ppo.ppo_lagrangian.lagrangian_ppo import LagrangianPPO
 from src.basic_apis.ppo.ppo_lagrangian.obs_dim_utils import lagrangian_flat_obs_dim_v2
-from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
+from src.basic_apis.utils.assets import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
 
 
 class LagrangianAugmentedEnv(gym.Env):
@@ -94,7 +94,7 @@ def train_ppo_lagrangian(cfg: DictConfig, paths_cfg=None, workdir=None):
 
     total_timesteps = int(train_cfg.get('total_timesteps', 1_000_000))
     save_path = str(train_cfg.get('save_path',
-                                  f"data/channel_generality/ppo_lagrangian_v2/models/"
+                                  f"data/channel_generality/ppo_lagrangian/models/"
                                   f"scen{'_'.join(map(str, active_scenarios))}_seed{seed}"))
     os.makedirs(os.path.dirname(os.path.abspath(save_path)), exist_ok=True)
     asset_cfg = train_cfg.get('asset', None)

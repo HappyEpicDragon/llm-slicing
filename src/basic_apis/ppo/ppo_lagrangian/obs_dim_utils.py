@@ -5,7 +5,7 @@ from typing import Any, Union
 
 from omegaconf import DictConfig, OmegaConf
 
-from src.basic_apis.dt_v2.env_v2 import INTER_DIM, INTRA_DIM
+from src.basic_apis.dt.env import INTER_DIM, INTRA_DIM
 from src.basic_apis.network_slicing_business.network_slicing_business_executor import (
     ComponentConfig,
 )

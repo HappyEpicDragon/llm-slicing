@@ -1,11 +1,11 @@
 # @package _global_
 
 defaults:
-  - /environment: env_ha
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/ha_only
+  - _self_
 
-name: channel_generality
 mode: test_ppo_ha_weighted
-workdir: ${hydra:runtime.output_dir}
 
 test_ppo_ha_weighted:
   environment: ${environment}
@@ -14,7 +14,7 @@ test_ppo_ha_weighted:
   # 多种子 × 多场景配置（5 seeds × 5 testing scenarios）
   test_seeds: [0, 1, 2, 3, 4]
   save_results: true
-  save_root: data/channel_generality/ppo_ha_weighted
+  save_root: ${paths.channel_generality}/ppo_ha_weighted
   clean_before_save: false
 
   env_updates:

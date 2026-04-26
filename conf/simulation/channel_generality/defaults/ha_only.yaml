@@ -1,0 +1,5 @@
+# @package _global_
+
+defaults:
+  - /environment: env_ha
+  - _self_

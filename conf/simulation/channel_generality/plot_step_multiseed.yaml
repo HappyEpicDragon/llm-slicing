@@ -4,16 +4,14 @@
 # 用法：pixi run sim plot_step_multiseed
 
 defaults:
-  - /environment: env_psjra
-  - /agent: ray_agent
+  - /simulation/channel_generality/_base
+  - _self_
 
-name: channel_generality
 mode: plot_step_multiseed
-workdir: ${hydra:runtime.output_dir}
 
 plot_step_multiseed:
   # 默认展示 scenario=9（S_E）：最具挑战性的测试场景，用于展示时序稳定性对比
   scenario: 9
   seeds: [0, 1, 2, 3, 4]
   methods: [ppo_ha_weighted, dt_baseline, dt, ppo_multi]
-  outdir: outputs/figures/channel_generality/temporal
+  outdir: ${paths.figures_root}/channel_generality/temporal

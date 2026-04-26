@@ -1,0 +1,8 @@
+# @package _global_
+
+plot:
+  json_data_base_dir: ${paths.channel_generality}
+  save_dir: ${paths.figures_root}/channel_generality/plot
+  metrics:
+    - normalized_distance_fulfill_cumsum
+    - normalized_violations_per_episode_cumsum

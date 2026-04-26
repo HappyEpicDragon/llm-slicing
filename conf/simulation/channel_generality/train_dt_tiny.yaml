@@ -1,0 +1,42 @@
+# @package _global_
+# Train DT tiny variants on dataset_D-B.
+# Run:
+#   pixi run sim channel_generality/train_dt_tiny \
+#     train_dt_tiny.grid_id=b2_e2
+
+defaults:
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/ha_only
+  - _self_
+
+mode: train_dt_tiny
+
+train_dt_tiny:
+  environment: ${environment}
+
+  dataset_dir: ${paths.channel_generality}/dt_8exp/dataset_D-B
+  save_root: ${paths.channel_generality}/dt_tiny/models
+  save_dir: ${train_dt_tiny.save_root}/${train_dt_tiny.grid_id}
+  grid_id: b2_e2
+
+  model:
+    context_len: 20
+    embed_dim: 32
+    n_layer: 2
+    n_head: 2
+    activation: relu
+    dropout: 0.1
+    encoder_type: slice_attn
+    encoder_hidden_dim: 32
+    encoder_num_heads: 2
+
+  optimizer:
+    epochs: 30
+    batch_size: 1024
+    lr: 1.0e-4
+    rtg_scale: 100000.0
+    total_epochs: null
+
+  device: cuda
+  grad_accum: 1
+  resume_from: null

@@ -1,11 +1,11 @@
 # @package _global_
 
 defaults:
-  - /environment: env_ha
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/ha_only
+  - _self_
 
-name: channel_generality
 mode: train_ppo_ha_weighted
-workdir: ${hydra:runtime.output_dir}
 
 train_scenario: 4
 

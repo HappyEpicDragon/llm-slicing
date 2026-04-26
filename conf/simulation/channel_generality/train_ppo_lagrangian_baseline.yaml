@@ -4,11 +4,11 @@
 # 训练：s0–s4，ep 0–59（60 条信道记录），seed=0
 
 defaults:
-  - /environment: single_scenario_env
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/single_ray
+  - _self_
 
-name: channel_generality
 mode: train_ppo_lagrangian_baseline
-workdir: ${hydra:runtime.output_dir}
 
 train_ppo_lagrangian_baseline:
   # 训练场景：s0–s4 联合训练
@@ -17,14 +17,14 @@ train_ppo_lagrangian_baseline:
   seed: 0
 
   # 模型保存路径
-  save_path: data/channel_generality/ppo_lagrangian_baseline/models/scen_all_seed0
+  save_path: ${paths.channel_generality}/ppo_lagrangian_baseline/models/scen_all_seed0
   asset:
     use_versioned_runs: true
     run_id: auto
     clean_before_run: false
     update_latest: true
 
-  # 训练步数（与 ppo_lagrangian_v2 对齐）
+  # 训练步数（与 ppo_lagrangian 对齐）
   total_timesteps: 1000000
 
   # Lagrangian 超参数（参考 [20] M. Zangooei et al., IEEE JSAC 2024）

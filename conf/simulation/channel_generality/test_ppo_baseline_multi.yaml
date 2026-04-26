@@ -1,12 +1,11 @@
 # @package _global_
 
 defaults:
-  - /environment: single_scenario_env
-  - /agent: ray_agent
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/single_ray
+  - _self_
 
-name: channel_generality
 mode: test_ppo_baseline_multi
-workdir: ${hydra:runtime.output_dir}
 
 test_ppo_baseline_multi:
   environment: ${environment}
@@ -27,7 +26,7 @@ test_ppo_baseline_multi:
   test_seeds: [0, 1, 2, 3, 4]
 
   # 结果保存根目录（标准 JSON 格式，供绘图脚本读取）
-  save_root: data/channel_generality/ppo_multi
+  save_root: ${paths.channel_generality}/ppo_multi
   clean_before_save: false
 
   env_updates:

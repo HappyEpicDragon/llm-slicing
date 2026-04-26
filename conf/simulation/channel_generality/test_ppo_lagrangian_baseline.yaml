@@ -4,15 +4,15 @@
 # 测试：s5–s9，ep 0–99（100 条信道记录，OOD），5 个随机种子
 
 defaults:
-  - /environment: single_scenario_env
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/single_ray
+  - _self_
 
-name: channel_generality
 mode: test_ppo_lagrangian_baseline
-workdir: ${hydra:runtime.output_dir}
 
 test_ppo_lagrangian_baseline:
   # 模型根目录（对应 train 的 save_path 目录）
-  model_root: data/channel_generality/ppo_lagrangian_baseline/models
+  model_root: ${paths.channel_generality}/ppo_lagrangian_baseline/models
   prefer_latest: true
   strict_model_check: true
 
@@ -20,7 +20,7 @@ test_ppo_lagrangian_baseline:
   model_seed: 0
 
   # 结果保存根目录
-  save_root: data/channel_generality/ppo_lagrangian_baseline
+  save_root: ${paths.channel_generality}/ppo_lagrangian_baseline
   clean_before_save: false
 
   # 测试场景（OOD eval set）

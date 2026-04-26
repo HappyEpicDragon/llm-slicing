@@ -10,6 +10,9 @@
 *~
 .cursor/
 .cursorrules
+.agents/
+
+skills-lock.json
 
 docs/
 

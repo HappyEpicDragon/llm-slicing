@@ -1,12 +1,10 @@
 # @package _global_
 
 defaults:
-  - /environment: env_psjra
-  - /agent: ray_agent
+  - /simulation/channel_generality/_base
+  - _self_
 
-name: channel_generality
 mode: calculate_metric_value
-workdir: ${hydra:runtime.output_dir}
 
 test_scenario: 9
 

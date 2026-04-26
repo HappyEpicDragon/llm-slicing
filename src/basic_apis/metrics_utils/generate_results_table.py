@@ -224,7 +224,7 @@ def generate_results_table(cfg: DictConfig):
     table_cfg = cfg.get('generate_results_table', cfg)
 
     data_root = str(table_cfg.get('data_root', 'data/channel_generality'))
-    save_dir = str(table_cfg.get('save_dir', 'outputs/latex_tables'))
+    save_dir = str(table_cfg.get('save_dir', 'outputs/tables/channel_generality'))
     scenario_ids = list(table_cfg.get('scenario_ids', [5, 6, 7, 8, 9]))
     method_keys = list(table_cfg.get('method_keys', METHOD_ORDER))
 

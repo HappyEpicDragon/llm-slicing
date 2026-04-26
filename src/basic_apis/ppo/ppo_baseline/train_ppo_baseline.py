@@ -1,7 +1,7 @@
 from omegaconf import OmegaConf
 from .env_ray import env_creator
 from .ray_agent import RayAgent
-from src.basic_apis.asset_utils import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
+from src.basic_apis.utils.assets import build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
 
 
 def train_ppo(cfg, paths_cfg=None, workdir=None):

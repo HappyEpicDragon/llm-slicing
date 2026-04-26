@@ -1,18 +1,16 @@
 # @package _global_
 
 defaults:
-  - /environment: env_psjra
-  - /agent: ray_agent
+  - /simulation/channel_generality/_base
+  - _self_
 
-name: channel_generality
 mode: plot_hist
-workdir: ${hydra:runtime.output_dir}
 
 plot_hist:
   # 推荐字段：data_root / output_dir（兼容旧字段 json_data_dir / save_dir）
-  data_root: data/channel_generality
+  data_root: ${paths.channel_generality}
 
-  output_dir: outputs/figures/channel_generality/cross_scenario
+  output_dir: ${paths.figures_root}/channel_generality/cross_scenario
 
   # 可按需覆盖方法顺序
   # 默认保留主对比方法

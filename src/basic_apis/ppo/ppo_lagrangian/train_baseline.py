@@ -4,7 +4,7 @@ PPO-Lagrangian Baseline 训练入口。
 使用与 ppo-baseline / dt-baseline **相同的仿真环境**（CommunicationEnv + IBSched），
 在 s0–s4 的 ep 0–59 上训练，seed=0。
 
-与 ppo_lagrangian_v2（EnvV2）的唯一区别：
+与 ppo_lagrangian 的唯一区别：
   - 环境后端换成 CommunicationEnv（env_sb3.py）
   - 观测：IBSched 格式的 145 维扁平向量
   - 动作：Box(10)  → 前5维连续 inter-slice 得分，后5维连续 intra-slice logit（argmax→0/1/2）
@@ -24,7 +24,7 @@ from omegaconf import DictConfig, OmegaConf
 
 from src.basic_apis.ppo.ppo_lagrangian.lagrangian_ppo import LagrangianPPO
 from src.basic_apis.ppo.ppo_lagrangian.obs_dim_utils import LAGRANGIAN_BASELINE_OBS_DIM
-from src.basic_apis.asset_utils import (
+from src.basic_apis.utils.assets import (
     build_versioned_run_dir, update_latest_symlink, ensure_clean_dir, ensure_dir
 )
 

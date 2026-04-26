@@ -1,15 +1,13 @@
 # @package _global_
 
 defaults:
-  - /environment: env_psjra
-  - /agent: ray_agent
+  - /simulation/channel_generality/_base
+  - _self_
 
-name: channel_generality
 mode: plot_multiseed
-workdir: ${hydra:runtime.output_dir}
 
 plot_multiseed:
   scenario: 9
   seeds: [0, 1, 2, 3, 4]
   methods: [ppo_ha_weighted, dt_baseline, dt]
-  outdir: outputs/figures/channel_generality/diagnostic
+  outdir: ${paths.figures_root}/channel_generality/diagnostic

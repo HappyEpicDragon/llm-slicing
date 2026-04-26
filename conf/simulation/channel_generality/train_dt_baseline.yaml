@@ -1,14 +1,14 @@
 # @package _global_
 defaults:
-  - /environment: env_ha
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/ha_only
+  - _self_
 
-name: channel_generality
 mode: train_dt_baseline
-workdir: ${hydra:runtime.output_dir}
 
 train_dt_baseline:
-  dataset_dir: data/channel_generality/dt_baseline_v2/dataset
-  save_dir: data/channel_generality/dt_baseline_v2/dt_model
+  dataset_dir: ${paths.channel_generality}/dt_baseline/dataset
+  save_dir: ${paths.channel_generality}/dt_baseline/dt_model
 
   model:
     context_len: 20

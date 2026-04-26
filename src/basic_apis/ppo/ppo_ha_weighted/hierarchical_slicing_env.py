@@ -9,7 +9,7 @@ from src.basic_apis.network_slicing_business.network_slicing_business_executor \
     import ComponentConfig, ComponentClasses, ComponentFactory, NetworkSlicingBusinessExecutor
 # 导入必要的计算函数
 from src.basic_apis.ppo.utils import intent_drift_calc
-from src.basic_apis.codebook_utils import build_dirichlet_inter_quota_codebook
+from src.basic_apis.utils.codebook import build_dirichlet_inter_quota_codebook
 
 
 # 兼容性包装器 (如果有 utils 依赖)

@@ -3,11 +3,11 @@
 # 参考文献：M. Zangooei et al., IEEE JSAC 2024 [20]
 
 defaults:
-  - /environment: env_ha
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/ha_only
+  - _self_
 
-name: channel_generality
 mode: train_ppo_lagrangian
-workdir: ${hydra:runtime.output_dir}
 
 train_ppo_lagrangian:
   # 训练场景：默认跨场景联合训练（0-4）
@@ -17,8 +17,8 @@ train_ppo_lagrangian:
 
   seed: 0
 
-  # 模型保存路径（EnvV2，与 PPO-v2/DT-v2 同环境；勿与旧 V1 权重混用）
-  save_path: data/channel_generality/ppo_lagrangian_v2/models/scen_all_seed0
+  # 模型保存路径（HA 环境，与 DT teacher PPO/DT 同环境；勿与旧权重混用）
+  save_path: ${paths.channel_generality}/ppo_lagrangian/models/scen_all_seed0
   asset:
     use_versioned_runs: true
     run_id: auto

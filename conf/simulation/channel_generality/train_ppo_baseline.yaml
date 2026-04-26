@@ -1,12 +1,11 @@
 # @package _global_
 
 defaults:
-  - /environment: single_scenario_env
-  - /agent: ray_agent
+  - /simulation/channel_generality/_base
+  - /simulation/channel_generality/defaults/single_ray
+  - _self_
 
-name: channel_generality
 mode: train_ppo_baseline
-workdir: ${hydra:runtime.output_dir}
 train_scenario: 4
 
 train_ppo_baseline:
