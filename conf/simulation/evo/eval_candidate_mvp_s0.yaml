@@ -1,0 +1,29 @@
+# @package _global_
+
+defaults:
+  - /simulation/evo/eval_candidate
+  - _self_
+
+# Full PPO-HA-weighted training/testing for a selected REEVO reward.
+mode: eval_candidate
+
+eval_candidate:
+  reward_fn_path: ???
+  scenarios: [0]
+  seed: 42
+  model_save_root: ${paths.mvp_agentic_root}/agentic/models
+  update_latest: true
+  run_test: true
+  test_seeds: [0, 1, 2, 3, 4]
+  test_save_root: ${paths.mvp_agentic_root}/agentic/metrics
+  train_timesteps: null
+  episode_split:
+    train:
+      init_scenario_episode: 0
+      max_scenario_episodes: 60
+    validation:
+      init_scenario_episode: 60
+      max_scenario_episodes: 80
+    test:
+      init_scenario_episode: 80
+      max_scenario_episodes: 100

@@ -1,3 +1,7 @@
+# AGENT约束规则
+
+## python环境
+
 本项目使用pixi管理python环境，执行python命令前需要加上pixi run前缀。
 
 ## Architecture Contract

@@ -41,6 +41,7 @@ CHANNEL_GENERALITY_HANDLERS = {
     "plot_sensitivity": evaluation.plot_sensitivity,
     "inference_benchmark": evaluation.inference_benchmark,
     "generate_results_table": evaluation.generate_results_table,
+    "summarize_mvp": evaluation.summarize_mvp,
     "plot_multiseed": evaluation.plot_multiseed,
     "plot_step_multiseed": evaluation.plot_step_multiseed,
     "analyze_assoc_data": evaluation.analyze_assoc_data,

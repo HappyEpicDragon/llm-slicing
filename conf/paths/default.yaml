@@ -17,3 +17,6 @@ evo_model_root: ${paths.channel_generality}/ppo_ha_weighted_evo/models
 evo_proxy_root: ${paths.channel_generality}/ppo_ha_weighted_evo/proxy
 reevo_outputs: ${paths.outputs_root}/runs/reevo
 evolution_curve: ${paths.channel_generality}/evolution_curve
+
+# Scenario 0 MVP: native PPO-HA-weighted vs REEVO-generated reward.
+mvp_agentic_root: ${paths.channel_generality}/mvp_agentic_s0

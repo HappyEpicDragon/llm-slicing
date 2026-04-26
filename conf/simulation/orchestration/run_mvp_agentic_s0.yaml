@@ -1,0 +1,43 @@
+# @package _global_
+
+name: orchestration
+mode: run_mvp_agentic_s0
+workdir: ${hydra:runtime.output_dir}
+
+orchestration:
+  project_root: ${paths.project_root}
+  session_name: mvp_agentic_s0
+  run_root: ${paths.mvp_agentic_root}/orchestration
+  attach: false
+  force: false
+  dry_run: false
+  monitor_interval_sec: 10
+
+  # Optional: skip REEVO and use a known reward response/code file.
+  reward_fn_path: ""
+
+  stages:
+    native_train:
+      enabled: true
+      env: ""
+      command: pixi run python main.py simulation=channel_generality/train_ppo_ha_weighted_mvp_s0
+
+    native_test:
+      enabled: true
+      env: ""
+      command: pixi run python main.py simulation=channel_generality/test_ppo_ha_weighted_mvp_s0
+
+    reevo_search:
+      enabled: true
+      env: ""
+      command: pixi run python main.py simulation=evo/run_evo_mvp_s0
+
+    agentic_eval:
+      enabled: true
+      env: ""
+      command: pixi run python main.py simulation=evo/eval_candidate_mvp_s0 eval_candidate.reward_fn_path={reward_fn_path}
+
+    summary:
+      enabled: true
+      env: ""
+      command: pixi run python main.py simulation=channel_generality/summarize_mvp_s0

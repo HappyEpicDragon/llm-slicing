@@ -142,10 +142,12 @@ class EvoSimulator(BaseSimulation):
         scenarios = list(cand.scenarios)
         seed = int(cand.seed)
         model_save_root = str(cand.model_save_root)
+        update_latest = bool(cand.get("update_latest", False))
         run_test = bool(cand.run_test)
         test_seeds = list(cand.test_seeds)
         test_save_root = str(cand.test_save_root)
         train_timesteps = getattr(cand, "train_timesteps", None)
+        episode_split = cand.get("episode_split", None)
 
         project_root = str(Path(__file__).resolve().parent.parent.parent)
         conf_dir = os.path.join(project_root, "conf")
@@ -156,6 +158,19 @@ class EvoSimulator(BaseSimulation):
 
         train_rows = []
         test_rows = []
+
+        def apply_episode_split(train_cfg_dict):
+            if episode_split is None:
+                return
+            inside_cfg = train_cfg_dict["environment"]["env_settings"]["inside"]
+            split_map = {
+                "training": episode_split.train,
+                "evaluating": episode_split.validation,
+                "testing": episode_split.test,
+            }
+            for mode_name, split_cfg in split_map.items():
+                inside_cfg[mode_name]["init_scenario_episode"] = int(split_cfg.init_scenario_episode)
+                inside_cfg[mode_name]["max_scenario_episodes"] = int(split_cfg.max_scenario_episodes)
 
         for scenario in scenarios:
             sc = int(scenario)
@@ -171,7 +186,7 @@ class EvoSimulator(BaseSimulation):
                         f"train_scenario={sc}",
                         f"workdir={tmp_dir}",
                         f"train_ppo_ha_weighted.asset.model_root={model_root_scenario}",
-                        "train_ppo_ha_weighted.asset.update_latest=false",
+                        f"train_ppo_ha_weighted.asset.update_latest={str(update_latest).lower()}",
                     ]
                     cfg = compose(
                         config_name="conf",
@@ -181,6 +196,7 @@ class EvoSimulator(BaseSimulation):
                     train_cfg_dict = OmegaConf.to_container(train_cfg, resolve=True)
                     if train_timesteps is not None:
                         train_cfg_dict["environment"]["train_rl"]["total_timesteps"] = int(train_timesteps)
+                    apply_episode_split(train_cfg_dict)
                 train_cfg_resolved = OmegaConf.create(train_cfg_dict)
 
                 metrics = train(
@@ -202,29 +218,54 @@ class EvoSimulator(BaseSimulation):
                 run_entries = sorted(Path(runs_dir).iterdir(), key=lambda p: p.name, reverse=True)
                 if not run_entries:
                     raise RuntimeError(f"No versioned runs found in {runs_dir} after training")
-                model_path = str(run_entries[0] / "best_model" / "best_model.zip")
+                latest_run = run_entries[0]
+                best_model_path = latest_run / "best_model" / "best_model.zip"
+                final_model_path = latest_run / "checkpoints" / "final_model_ha_best.zip"
+                if best_model_path.exists():
+                    model_path = str(best_model_path)
+                elif final_model_path.exists():
+                    model_path = str(final_model_path)
+                    print(f"[EvoSimulator] best_model not found; using final model: {model_path}")
+                else:
+                    raise RuntimeError(f"No best or final model found in {latest_run}")
 
                 if run_test:
                     GlobalHydra.instance().clear()
                     test_tmp = tempfile.mkdtemp(prefix="evo_eval_cand_test_")
                     try:
                         seeds_csv = ",".join(str(int(s)) for s in test_seeds)
+                        test_overrides = [
+                            "simulation=channel_generality/test_ppo_ha_weighted",
+                            f"workdir={test_tmp}",
+                            f"test_ppo_ha_weighted.model_path={model_path}",
+                            f"test_ppo_ha_weighted.test_seeds=[{seeds_csv}]",
+                            f"test_ppo_ha_weighted.save_root={test_save_root}",
+                            f"test_ppo_ha_weighted.env_updates.model_name=scenario_{sc}_mvp_agentic",
+                            f"test_ppo_ha_weighted.env_updates.inside.training.active_scenario_list=[{sc}]",
+                            f"test_ppo_ha_weighted.env_updates.inside.evaluating.active_scenario_list=[{sc}]",
+                            f"test_ppo_ha_weighted.env_updates.inside.testing.active_scenario_list=[{sc}]",
+                        ]
+                        if episode_split is not None:
+                            test_overrides.extend([
+                                "+test_ppo_ha_weighted.env_updates.inside.training.init_scenario_episode="
+                                f"{int(episode_split.train.init_scenario_episode)}",
+                                "+test_ppo_ha_weighted.env_updates.inside.training.max_scenario_episodes="
+                                f"{int(episode_split.train.max_scenario_episodes)}",
+                                "+test_ppo_ha_weighted.env_updates.inside.evaluating.init_scenario_episode="
+                                f"{int(episode_split.validation.init_scenario_episode)}",
+                                "+test_ppo_ha_weighted.env_updates.inside.evaluating.max_scenario_episodes="
+                                f"{int(episode_split.validation.max_scenario_episodes)}",
+                                "+test_ppo_ha_weighted.env_updates.inside.testing.init_scenario_episode="
+                                f"{int(episode_split.test.init_scenario_episode)}",
+                                "+test_ppo_ha_weighted.env_updates.inside.testing.max_scenario_episodes="
+                                f"{int(episode_split.test.max_scenario_episodes)}",
+                            ])
                         with initialize_config_dir(
                             config_dir=conf_dir, job_name="evo_eval_candidate_test", version_base=None
                         ):
                             tcfg = compose(
                                 config_name="conf",
-                                overrides=[
-                                    "simulation=channel_generality/test_ppo_ha_weighted",
-                                    f"workdir={test_tmp}",
-                                    f"test_ppo_ha_weighted.model_path={model_path}",
-                                    f"test_ppo_ha_weighted.test_seeds=[{seeds_csv}]",
-                                    f"test_ppo_ha_weighted.save_root={test_save_root}",
-                                    f"test_ppo_ha_weighted.env_updates.model_name=scenario_{sc}",
-                                    f"test_ppo_ha_weighted.env_updates.inside.training.active_scenario_list=[{sc}]",
-                                    f"test_ppo_ha_weighted.env_updates.inside.evaluating.active_scenario_list=[{sc}]",
-                                    f"test_ppo_ha_weighted.env_updates.inside.testing.active_scenario_list=[{sc}]",
-                                ],
+                                overrides=test_overrides,
                             )
                             test_block = tcfg.test_ppo_ha_weighted
                             test_cfg_dict = OmegaConf.to_container(test_block, resolve=True)

@@ -1,0 +1,38 @@
+# @package _global_
+
+defaults:
+  - /simulation/channel_generality/train_ppo_ha_weighted
+  - _self_
+
+# Native PPO-HA-weighted MVP baseline on scenario 0.
+mode: train_ppo_ha_weighted
+train_scenario: 0
+
+train_ppo_ha_weighted:
+  asset:
+    model_root: ${paths.mvp_agentic_root}/native/models/scenario_0
+    update_latest: true
+  environment:
+    env_settings:
+      inside:
+        training:
+          init_scenario_episode: 0
+          max_scenario_episodes: 60
+          active_scenario_list: [0]
+        evaluating:
+          init_scenario_episode: 60
+          max_scenario_episodes: 80
+          active_scenario_list: [0]
+        testing:
+          init_scenario_episode: 80
+          max_scenario_episodes: 100
+          active_scenario_list: [0]
+  env_updates:
+    model_name: scenario_0_mvp_native
+    inside:
+      training:
+        active_scenario_list: [0]
+      evaluating:
+        active_scenario_list: [0]
+      testing:
+        active_scenario_list: [0]

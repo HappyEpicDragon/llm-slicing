@@ -55,6 +55,12 @@ def generate_results_table(sim):
     generate_results_table(sim.cfg)
 
 
+def summarize_mvp(sim):
+    from src.basic_apis.metrics_utils.mvp_summary import summarize_mvp as run_summary
+
+    run_summary(sim.cfg)
+
+
 def plot_multiseed(sim):
     from src.basic_apis.metrics_utils.plot_s9_multiseed import plot_multiseed_from_cfg
 

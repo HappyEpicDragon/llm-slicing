@@ -1,0 +1,29 @@
+# @package _global_
+
+defaults:
+  - /simulation/channel_generality/_base
+  - _self_
+
+mode: summarize_mvp
+
+mvp_summary:
+  scenario_id: 0
+  train_seed: 42
+  test_seeds: [0, 1, 2, 3, 4]
+  training_timesteps: 600000
+  output_dir: ${paths.mvp_agentic_root}/summary
+  episode_split:
+    train: [0, 60]
+    validation: [60, 80]
+    test: [80, 100]
+  methods:
+    - key: native
+      label: Native PPO-HA-Weighted
+      metric_root: ${paths.mvp_agentic_root}/native/metrics
+      model_path: ${paths.mvp_agentic_root}/native/models/scenario_0/latest/best_model/best_model.zip
+      reward_fn_path: builtin:_builtin_compute_reward
+    - key: agentic
+      label: Agentic PPO-HA-Weighted
+      metric_root: ${paths.mvp_agentic_root}/agentic/metrics
+      model_path: ${paths.mvp_agentic_root}/agentic/models/scenario_0/latest/best_model/best_model.zip
+      reward_fn_path: ${oc.env:MVP_AGENTIC_REWARD_PATH,""}

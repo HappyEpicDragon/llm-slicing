@@ -1,0 +1,14 @@
+# @package _global_
+
+defaults:
+  - /simulation/evo/run_evo
+  - _self_
+
+# REEVO reward search for the scenario 0 MVP.
+mode: run_evo
+
+run_evo:
+  proxy_scenario: 0
+  proxy_scenarios: "0"
+  proxy_train_ratio: 0.3
+  seed: 42

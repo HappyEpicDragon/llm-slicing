@@ -1,0 +1,31 @@
+# @package _global_
+
+defaults:
+  - /simulation/channel_generality/test_ppo_ha_weighted
+  - _self_
+
+# Native PPO-HA-weighted MVP test on held-out scenario 0 episodes 80-99.
+mode: test_ppo_ha_weighted
+
+test_ppo_ha_weighted:
+  model_path: ${paths.mvp_agentic_root}/native/models/scenario_0/latest/best_model/best_model.zip
+  test_seeds: [0, 1, 2, 3, 4]
+  save_root: ${paths.mvp_agentic_root}/native/metrics
+  clean_before_save: false
+  env_updates:
+    mode: testing
+    scenario_mode: inside
+    model_name: scenario_0_mvp_native
+    inside:
+      training:
+        init_scenario_episode: 0
+        max_scenario_episodes: 60
+        active_scenario_list: [0]
+      evaluating:
+        init_scenario_episode: 60
+        max_scenario_episodes: 80
+        active_scenario_list: [0]
+      testing:
+        init_scenario_episode: 80
+        max_scenario_episodes: 100
+        active_scenario_list: [0]

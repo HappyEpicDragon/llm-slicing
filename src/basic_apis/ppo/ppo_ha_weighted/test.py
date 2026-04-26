@@ -53,6 +53,96 @@ def _compute_step_metrics(info, num_slices=5):
     return hp_dist, nhp_dist, hp_viols, nhp_viols, hp_active, nhp_active
 
 
+def _new_detail_stats():
+    return {
+        "margin_sum": 0.0,
+        "margin_count": 0,
+        "severity_sum": 0.0,
+        "severity_count": 0,
+        "qos": {
+            metric: {"margin_sum": 0.0, "count": 0, "viol": 0, "severity_sum": 0.0}
+            for metric in ("thr", "lat", "rel")
+        },
+    }
+
+
+def _compute_detail_step_metrics(info, num_slices=5):
+    """Metric-level intent margins for MVP reporting."""
+    stats = _new_detail_stats()
+    for s_idx in range(num_slices):
+        if info.get(f"meta/slice_{s_idx}_active", 0) == 0:
+            continue
+        for metric in ("thr", "lat", "rel"):
+            if info.get(f"meta/slice_{s_idx}_{metric}_req", 0) == 0:
+                continue
+            margin = float(info.get(f"drift/slice_{s_idx}_{metric}", 0.0))
+            q_stats = stats["qos"][metric]
+            q_stats["margin_sum"] += margin
+            q_stats["count"] += 1
+            stats["margin_sum"] += margin
+            stats["margin_count"] += 1
+            if margin < 0:
+                severity = abs(margin)
+                q_stats["viol"] += 1
+                q_stats["severity_sum"] += severity
+                stats["severity_sum"] += severity
+                stats["severity_count"] += 1
+    return stats
+
+
+def _merge_detail_stats(total, step):
+    total["margin_sum"] += step["margin_sum"]
+    total["margin_count"] += step["margin_count"]
+    total["severity_sum"] += step["severity_sum"]
+    total["severity_count"] += step["severity_count"]
+    for metric in ("thr", "lat", "rel"):
+        dst = total["qos"][metric]
+        src = step["qos"][metric]
+        dst["margin_sum"] += src["margin_sum"]
+        dst["count"] += src["count"]
+        dst["viol"] += src["viol"]
+        dst["severity_sum"] += src["severity_sum"]
+
+
+def _finalize_detail_stats(stats):
+    out = {
+        "mean_intent_margin": (
+            stats["margin_sum"] / stats["margin_count"]
+            if stats["margin_count"] > 0 else 0.0
+        ),
+        "violation_severity": (
+            stats["severity_sum"] / stats["severity_count"]
+            if stats["severity_count"] > 0 else 0.0
+        ),
+    }
+    for metric in ("thr", "lat", "rel"):
+        q_stats = stats["qos"][metric]
+        count = q_stats["count"]
+        out[f"{metric}_viol"] = q_stats["viol"] / count if count > 0 else 0.0
+        out[f"{metric}_margin"] = q_stats["margin_sum"] / count if count > 0 else 0.0
+        out[f"{metric}_severity"] = (
+            q_stats["severity_sum"] / q_stats["viol"]
+            if q_stats["viol"] > 0 else 0.0
+        )
+    return out
+
+
+MVP_EXTRA_METRICS = (
+    "total_viol",
+    "mean_intent_margin",
+    "violation_severity",
+    "thr_viol",
+    "lat_viol",
+    "rel_viol",
+    "thr_margin",
+    "lat_margin",
+    "rel_margin",
+    "thr_severity",
+    "lat_severity",
+    "rel_severity",
+)
+
+
 def make_env(cfg, paths_cfg=None, workdir=None, rank=0, seed=0):
     """H+A 环境工厂函数"""
 
@@ -135,6 +225,7 @@ def test_ppo_ha(cfg, paths_cfg=None, workdir=None):
 
         seed_rewards, seed_hp_viols, seed_nhp_viols = [], [], []
         seed_hp_dists, seed_nhp_dists = [], []
+        seed_extra = {metric: [] for metric in MVP_EXTRA_METRICS}
 
         for seed in test_seeds:
             print(f"  Seed {seed} / Scenario {scenario_id}")
@@ -151,13 +242,20 @@ def test_ppo_ha(cfg, paths_cfg=None, workdir=None):
 
             ep_rewards, ep_hp_viols, ep_nhp_viols = [], [], []
             ep_hp_dists, ep_nhp_dists = [], []
+            ep_extra = {metric: [] for metric in MVP_EXTRA_METRICS}
             seed_step_hp_dists, seed_step_nhp_dists = [], []
+            seed_step_mean_margins, seed_step_severities = [], []
+            seed_step_qos = {
+                metric: {"viol": [], "margin": [], "severity": []}
+                for metric in ("thr", "lat", "rel")
+            }
             pbar = tqdm(total=n_episodes, unit="ep", desc=f"S{scenario_id} seed{seed}")
             current_ep_reward = 0.0
             # 当前 episode 逐步累计量
             ep_hp_dist_sum = ep_nhp_dist_sum = 0.0
             ep_hp_viol_sum = ep_nhp_viol_sum = 0
             ep_hp_active = ep_nhp_active = 0
+            ep_detail_stats = _new_detail_stats()
             ep_step_hp_dists, ep_step_nhp_dists = [], []
 
             try:
@@ -170,15 +268,24 @@ def test_ppo_ha(cfg, paths_cfg=None, workdir=None):
 
                     # 逐步累计 distance 和 violation（与 metric_value.py 对齐）
                     hp_d, nhp_d, hp_v, nhp_v, hp_a, nhp_a = _compute_step_metrics(info)
+                    detail_step = _compute_detail_step_metrics(info)
+                    detail_step_final = _finalize_detail_stats(detail_step)
                     ep_hp_dist_sum += hp_d
                     ep_nhp_dist_sum += nhp_d
                     ep_hp_viol_sum += hp_v
                     ep_nhp_viol_sum += nhp_v
                     ep_hp_active += hp_a
                     ep_nhp_active += nhp_a
+                    _merge_detail_stats(ep_detail_stats, detail_step)
                     # 归一化后的 step-level 值（用于 NPZ，可视化 Fig.3/4）
                     ep_step_hp_dists.append(hp_d / hp_a if hp_a > 0 else 0.0)
                     ep_step_nhp_dists.append(nhp_d / nhp_a if nhp_a > 0 else 0.0)
+                    seed_step_mean_margins.append(detail_step_final["mean_intent_margin"])
+                    seed_step_severities.append(detail_step_final["violation_severity"])
+                    for metric in ("thr", "lat", "rel"):
+                        seed_step_qos[metric]["viol"].append(detail_step_final[f"{metric}_viol"])
+                        seed_step_qos[metric]["margin"].append(detail_step_final[f"{metric}_margin"])
+                        seed_step_qos[metric]["severity"].append(detail_step_final[f"{metric}_severity"])
 
                     if dones[0]:
                         # 归一化：sum / (active_slices × n_steps)，与 metric_value.py 一致
@@ -186,12 +293,22 @@ def test_ppo_ha(cfg, paths_cfg=None, workdir=None):
                         nhp_dist_ep = ep_nhp_dist_sum / ep_nhp_active if ep_nhp_active > 0 else 0.0
                         hp_viol_ep  = ep_hp_viol_sum  / ep_hp_active  if ep_hp_active  > 0 else 0.0
                         nhp_viol_ep = ep_nhp_viol_sum / ep_nhp_active if ep_nhp_active > 0 else 0.0
+                        total_active = ep_hp_active + ep_nhp_active
+                        total_viol_ep = (
+                            (ep_hp_viol_sum + ep_nhp_viol_sum) / total_active
+                            if total_active > 0 else 0.0
+                        )
+                        detail_ep = _finalize_detail_stats(ep_detail_stats)
 
                         ep_rewards.append(float(current_ep_reward))
                         ep_hp_viols.append(float(hp_viol_ep))
                         ep_nhp_viols.append(float(nhp_viol_ep))
                         ep_hp_dists.append(float(hp_dist_ep))
                         ep_nhp_dists.append(float(nhp_dist_ep))
+                        ep_extra["total_viol"].append(float(total_viol_ep))
+                        for metric in MVP_EXTRA_METRICS:
+                            if metric != "total_viol":
+                                ep_extra[metric].append(float(detail_ep[metric]))
                         seed_step_hp_dists.extend(ep_step_hp_dists)
                         seed_step_nhp_dists.extend(ep_step_nhp_dists)
                         pbar.update(1)
@@ -201,6 +318,7 @@ def test_ppo_ha(cfg, paths_cfg=None, workdir=None):
                         ep_hp_dist_sum = ep_nhp_dist_sum = 0.0
                         ep_hp_viol_sum = ep_nhp_viol_sum = 0
                         ep_hp_active = ep_nhp_active = 0
+                        ep_detail_stats = _new_detail_stats()
                         ep_step_hp_dists, ep_step_nhp_dists = [], []
             except KeyboardInterrupt:
                 print("  Interrupted.")
@@ -213,14 +331,21 @@ def test_ppo_ha(cfg, paths_cfg=None, workdir=None):
             mean_nhp = float(np.mean(ep_nhp_viols)) if ep_nhp_viols else 0.0
             mean_hp_dist = float(np.mean(ep_hp_dists)) if ep_hp_dists else 0.0
             mean_nhp_dist = float(np.mean(ep_nhp_dists)) if ep_nhp_dists else 0.0
+            mean_extra = {
+                metric: float(np.mean(values)) if values else 0.0
+                for metric, values in ep_extra.items()
+            }
             print(f"  Seed {seed}: Reward={mean_r:.2f}, HP_Viol={mean_hp:.2f}, "
-                  f"HP_Dist={mean_hp_dist:.4f}, NHP_Dist={mean_nhp_dist:.4f}")
+                  f"HP_Dist={mean_hp_dist:.4f}, NHP_Dist={mean_nhp_dist:.4f}, "
+                  f"Total_Viol={mean_extra['total_viol']:.2f}")
 
             seed_rewards.append(mean_r)
             seed_hp_viols.append(mean_hp)
             seed_nhp_viols.append(mean_nhp)
             seed_hp_dists.append(mean_hp_dist)
             seed_nhp_dists.append(mean_nhp_dist)
+            for metric in MVP_EXTRA_METRICS:
+                seed_extra[metric].append(mean_extra[metric])
 
             if save_results:
                 json_dir = os.path.join(save_root, "metric_json",
@@ -235,11 +360,16 @@ def test_ppo_ha(cfg, paths_cfg=None, workdir=None):
                            os.path.join(json_dir, "hp_distance.json"))
                 _save_json({"nhp_distance": ep_nhp_dists, "mean": mean_nhp_dist},
                            os.path.join(json_dir, "nhp_distance.json"))
+                for metric in MVP_EXTRA_METRICS:
+                    _save_json({metric: ep_extra[metric], "mean": mean_extra[metric]},
+                               os.path.join(json_dir, f"{metric}.json"))
                 summary = {
                     "scenario_id": scenario_id, "seed": seed,
                     "reward_mean": mean_r, "hp_viol_mean": mean_hp, "nhp_viol_mean": mean_nhp,
                     "hp_dist_mean": mean_hp_dist, "nhp_dist_mean": mean_nhp_dist,
                 }
+                for metric in MVP_EXTRA_METRICS:
+                    summary[f"{metric}_mean"] = mean_extra[metric]
                 _save_json(summary, os.path.join(json_dir, "summary.json"))
 
                 # step-level NPZ for Fig.3/4
@@ -252,6 +382,20 @@ def test_ppo_ha(cfg, paths_cfg=None, workdir=None):
                     nhp_viols=np.array(ep_nhp_viols),
                     step_hp_dist=np.array(seed_step_hp_dists),
                     step_nhp_dist=np.array(seed_step_nhp_dists),
+                    total_viols=np.array(ep_extra["total_viol"]),
+                    mean_intent_margins=np.array(ep_extra["mean_intent_margin"]),
+                    violation_severities=np.array(ep_extra["violation_severity"]),
+                    step_mean_intent_margin=np.array(seed_step_mean_margins),
+                    step_violation_severity=np.array(seed_step_severities),
+                    step_thr_viol=np.array(seed_step_qos["thr"]["viol"]),
+                    step_lat_viol=np.array(seed_step_qos["lat"]["viol"]),
+                    step_rel_viol=np.array(seed_step_qos["rel"]["viol"]),
+                    step_thr_margin=np.array(seed_step_qos["thr"]["margin"]),
+                    step_lat_margin=np.array(seed_step_qos["lat"]["margin"]),
+                    step_rel_margin=np.array(seed_step_qos["rel"]["margin"]),
+                    step_thr_severity=np.array(seed_step_qos["thr"]["severity"]),
+                    step_lat_severity=np.array(seed_step_qos["lat"]["severity"]),
+                    step_rel_severity=np.array(seed_step_qos["rel"]["severity"]),
                 )
 
         scenario_summary = {
@@ -267,6 +411,9 @@ def test_ppo_ha(cfg, paths_cfg=None, workdir=None):
             "nhp_dist_mean": float(np.mean(seed_nhp_dists)),
             "nhp_dist_std": float(np.std(seed_nhp_dists)),
         }
+        for metric in MVP_EXTRA_METRICS:
+            scenario_summary[f"{metric}_mean"] = float(np.mean(seed_extra[metric]))
+            scenario_summary[f"{metric}_std"] = float(np.std(seed_extra[metric]))
         all_scenario_results[f"scenario_{scenario_id}"] = scenario_summary
         print(f"\nScenario {scenario_id}: Reward={scenario_summary['reward_mean']:.2f}±{scenario_summary['reward_std']:.2f}, "
               f"HP_Dist={scenario_summary['hp_dist_mean']:.4f}±{scenario_summary['hp_dist_std']:.4f}")
